@@ -1,0 +1,944 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cardiovascular Cases — PACES</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0e0f11;
+  --surface: #16181c;
+  --surface2: #1d2026;
+  --border: #2a2d35;
+  --text: #e8e9ec;
+  --text2: #8b8f9a;
+  --text3: #5a5e6b;
+  --accent: #4a9eff;
+  --accent-dim: #1a3a5c;
+  --green: #4caf7d;
+  --green-dim: #1a3328;
+  --red: #e05c5c;
+  --red-dim: #3a1f1f;
+  --amber: #f0a040;
+  --amber-dim: #3a2a10;
+  --purple: #a78bfa;
+  --purple-dim: #2d2040;
+  --mono: 'IBM Plex Mono', monospace;
+  --serif: 'Instrument Serif', serif;
+  --sans: 'DM Sans', sans-serif;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { font-size: 15px; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  min-height: 100vh;
+  display: flex;
+}
+
+/* SIDEBAR */
+.sidebar {
+  width: 260px;
+  min-width: 260px;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  position: sticky;
+  top: 0;
+  overflow-y: auto;
+}
+.sidebar-hdr {
+  padding: 20px 18px 14px;
+  border-bottom: 1px solid var(--border);
+}
+.sidebar-hdr .eyebrow {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--text3);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  margin-bottom: 5px;
+}
+.sidebar-hdr .main-title {
+  font-family: var(--serif);
+  font-size: 19px;
+  color: var(--text);
+  font-style: italic;
+}
+.sidebar-hdr .sub {
+  font-size: 11px;
+  color: var(--text3);
+  margin-top: 4px;
+}
+.case-nav {
+  flex: 1;
+  padding: 10px 0;
+}
+.case-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 18px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s;
+  border-left: 3px solid transparent;
+}
+.case-btn:hover { background: var(--surface2); }
+.case-btn.active {
+  background: var(--accent-dim);
+  border-left-color: var(--accent);
+}
+.case-btn .num {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--text3);
+  min-width: 18px;
+}
+.case-btn.active .num { color: var(--accent); }
+.case-btn .name {
+  font-size: 12px;
+  color: var(--text2);
+  line-height: 1.3;
+  flex: 1;
+}
+.case-btn.active .name { color: var(--text); font-weight: 500; }
+.case-btn .freq {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text3);
+}
+.case-btn.active .freq { color: var(--accent); }
+
+/* MAIN CONTENT */
+.main {
+  flex: 1;
+  overflow-y: auto;
+  padding: 32px 40px 60px;
+  max-width: 820px;
+}
+
+/* CASE PAGE */
+.case-page { display: none; }
+.case-page.active { display: block; }
+
+.case-hdr {
+  margin-bottom: 24px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+}
+.case-hdr .eyebrow {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--accent);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.case-hdr h1 {
+  font-family: var(--serif);
+  font-size: 32px;
+  font-weight: 400;
+  color: var(--text);
+  font-style: italic;
+  margin-bottom: 12px;
+}
+.badge-row { display: flex; flex-wrap: wrap; gap: 6px; }
+.badge {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 10px;
+  padding: 3px 10px;
+  border-radius: 3px;
+  font-weight: 500;
+}
+.badge-red { background: var(--red-dim); color: var(--red); }
+.badge-blue { background: var(--accent-dim); color: var(--accent); }
+.badge-amber { background: var(--amber-dim); color: var(--amber); }
+
+/* SPOT BOX */
+.spot-box {
+  background: var(--accent-dim);
+  border: 1px solid #1e4a80;
+  border-radius: 8px;
+  padding: 14px 16px;
+  margin-bottom: 24px;
+}
+.spot-box .spot-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  color: var(--accent);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+.spot-items { display: flex; flex-wrap: wrap; gap: 6px; }
+.spot-item {
+  background: rgba(74,158,255,0.1);
+  border: 1px solid rgba(74,158,255,0.25);
+  border-radius: 4px;
+  font-size: 12px;
+  color: #a0c8ff;
+  padding: 4px 10px;
+}
+
+/* SECTIONS */
+.section { margin-bottom: 14px; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.sec-hdr {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 16px;
+  cursor: pointer;
+  background: var(--surface);
+  transition: background 0.15s;
+  user-select: none;
+}
+.sec-hdr:hover { background: var(--surface2); }
+.sec-icon { font-size: 14px; }
+.sec-title { font-size: 13px; font-weight: 500; color: var(--text); flex: 1; }
+.sec-arrow { font-family: var(--mono); font-size: 11px; color: var(--text3); transition: transform 0.2s; }
+.sec-arrow.open { transform: rotate(90deg); }
+.sec-body {
+  border-top: 1px solid var(--border);
+  padding: 16px;
+  display: none;
+  background: var(--bg);
+}
+.sec-body.open { display: block; }
+
+/* EXAM STEPS */
+.exam-step { display: flex; gap: 12px; margin-bottom: 12px; }
+.exam-step:last-child { margin-bottom: 0; }
+.step-n {
+  min-width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--accent-dim);
+  color: var(--accent);
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1px;
+  flex-shrink: 0;
+}
+.step-content .step-label { font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 4px; }
+.step-content .step-detail { font-size: 12px; color: var(--text2); line-height: 1.65; }
+.tag {
+  display: inline-block;
+  font-size: 10px;
+  font-family: var(--mono);
+  padding: 1px 7px;
+  border-radius: 3px;
+  margin: 1px 2px 1px 0;
+  vertical-align: baseline;
+}
+.t-pos { background: var(--green-dim); color: var(--green); }
+.t-neg { background: var(--red-dim); color: var(--red); }
+.t-warn { background: var(--amber-dim); color: var(--amber); }
+.t-neutral { background: var(--surface2); color: var(--text2); }
+
+/* SCRIPT CARDS */
+.script-card { border: 1px solid var(--border); border-radius: 6px; overflow: hidden; margin-bottom: 10px; }
+.script-card:last-child { margin-bottom: 0; }
+.sc-hdr { padding: 6px 12px; font-family: var(--mono); font-size: 9px; letter-spacing: 1px; text-transform: uppercase; font-weight: 500; }
+.sc-hdr.diag { background: var(--accent-dim); color: var(--accent); }
+.sc-hdr.pos { background: var(--green-dim); color: var(--green); }
+.sc-hdr.neg { background: var(--red-dim); color: var(--red); }
+.sc-hdr.inc { background: var(--surface2); color: var(--text2); }
+.sc-body {
+  padding: 12px 14px;
+  font-family: var(--serif);
+  font-size: 14px;
+  font-style: italic;
+  color: var(--text);
+  line-height: 1.75;
+  background: var(--surface);
+}
+.sc-note {
+  font-family: var(--sans);
+  font-size: 11px;
+  font-style: normal;
+  color: var(--text2);
+  background: var(--surface2);
+  border-top: 1px solid var(--border);
+  padding: 8px 14px;
+  line-height: 1.5;
+}
+
+/* DIFFERENTIALS TABLE */
+.diff-row { display: flex; gap: 12px; padding: 7px 0; border-bottom: 1px solid var(--border); font-size: 12px; }
+.diff-row:last-child { border-bottom: none; }
+.diff-dx { font-weight: 500; color: var(--text); min-width: 200px; }
+.diff-detail { color: var(--text2); }
+
+/* TWO COL */
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.mini-card { background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 12px 14px; }
+.mini-card .mini-title { font-family: var(--mono); font-size: 9px; color: var(--text3); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+.mini-card .mi { font-size: 12px; color: var(--text2); padding: 2px 0; line-height: 1.5; }
+.mini-card .mi::before { content: "—"; color: var(--text3); margin-right: 6px; font-family: var(--mono); }
+
+/* Q&A */
+.qa-item { margin-bottom: 14px; }
+.qa-item:last-child { margin-bottom: 0; }
+.qa-q {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--accent);
+  margin-bottom: 5px;
+  padding-left: 20px;
+  position: relative;
+}
+.qa-q::before {
+  content: "Q";
+  position: absolute;
+  left: 0;
+  font-family: var(--mono);
+  font-size: 10px;
+  background: var(--accent-dim);
+  color: var(--accent);
+  width: 14px;
+  height: 14px;
+  border-radius: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  top: 1px;
+}
+.qa-a { font-size: 12px; color: var(--text2); line-height: 1.65; padding-left: 20px; }
+
+/* PITFALLS */
+.pitfall { display: flex; gap: 10px; margin-bottom: 8px; font-size: 12px; color: var(--text2); line-height: 1.6; }
+.pitfall:last-child { margin-bottom: 0; }
+.pitfall::before {
+  content: "!";
+  min-width: 18px;
+  height: 18px;
+  border-radius: 3px;
+  background: var(--amber-dim);
+  color: var(--amber);
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 1px;
+  flex-shrink: 0;
+}
+
+/* SEVERITY TABLE */
+.sev-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+.sev-table th { text-align: left; padding: 6px 12px; background: var(--surface2); color: var(--text2); font-family: var(--mono); font-size: 9px; text-transform: uppercase; letter-spacing: 1px; font-weight: 500; }
+.sev-table td { padding: 7px 12px; border-top: 1px solid var(--border); color: var(--text2); line-height: 1.5; }
+.sev-table td:first-child { color: var(--text); font-weight: 500; }
+.sev-table tr:last-child td { }
+
+.warn-box {
+  background: var(--amber-dim);
+  border: 1px solid rgba(240,160,64,0.3);
+  border-radius: 6px;
+  padding: 10px 14px;
+  font-size: 12px;
+  color: var(--amber);
+  margin-top: 12px;
+}
+.warn-box::before { content: "⚠ "; }
+</style>
+</head>
+<body>
+
+<aside class="sidebar">
+  <div class="sidebar-hdr">
+    <div class="eyebrow">PACES · Station 3</div>
+    <div class="main-title">Cardiovascular</div>
+    <div class="sub">10 cases · 77% of appearances</div>
+  </div>
+  <nav class="case-nav" id="caseNav">
+    <button class="case-btn active" onclick="show(0)"><span class="num">01</span><span class="name">Metallic Aortic Valve</span><span class="freq">17.2%</span></button>
+    <button class="case-btn" onclick="show(1)"><span class="num">02</span><span class="name">Aortic Stenosis</span><span class="freq">12.0%</span></button>
+    <button class="case-btn" onclick="show(2)"><span class="num">03</span><span class="name">Mitral Regurgitation</span><span class="freq">8.1%</span></button>
+    <button class="case-btn" onclick="show(3)"><span class="num">04</span><span class="name">Aortic Regurgitation</span><span class="freq">6.9%</span></button>
+    <button class="case-btn" onclick="show(4)"><span class="num">05</span><span class="name">Metallic Mitral Valve</span><span class="freq">6.4%</span></button>
+    <button class="case-btn" onclick="show(5)"><span class="num">06</span><span class="name">Mitral Stenosis</span><span class="freq">6.1%</span></button>
+    <button class="case-btn" onclick="show(6)"><span class="num">07</span><span class="name">Atrial Fibrillation</span><span class="freq">5.3%</span></button>
+    <button class="case-btn" onclick="show(7)"><span class="num">08</span><span class="name">Mitral Valve Prolapse</span><span class="freq">5.0%</span></button>
+    <button class="case-btn" onclick="show(8)"><span class="num">09</span><span class="name">Mixed Aortic Valve</span><span class="freq">4.9%</span></button>
+    <button class="case-btn" onclick="show(9)"><span class="num">10</span><span class="name">VSD</span><span class="freq">4.3%</span></button>
+  </nav>
+</aside>
+
+<main class="main" id="mainContent">
+
+<!-- ==================== CASE 0: METALLIC AV ==================== -->
+<div class="case-page active" id="case-0">
+  <div class="case-hdr">
+    <div class="eyebrow">Case 01 · Most Common · 17.2%</div>
+    <h1>Metallic Aortic Valve Replacement</h1>
+    <div class="badge-row">
+      <span class="badge badge-red">17.2% — most common</span>
+      <span class="badge badge-blue">Station 3</span>
+      <span class="badge badge-amber">Stem: dyspnoea / chest pain / syncope</span>
+    </div>
+  </div>
+
+  <div class="spot-box">
+    <div class="spot-label">⚡ Spot diagnosis — before you touch the patient</div>
+    <div class="spot-items">
+      <span class="spot-item">Audible metallic click on approach</span>
+      <span class="spot-item">Median sternotomy scar</span>
+      <span class="spot-item">Bruising from warfarin</span>
+      <span class="spot-item">Pacemaker scar possible</span>
+      <span class="spot-item">Marfan's / AS / RA features</span>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="sec-hdr" onclick="tog(this)">
+      <span class="sec-icon">🔎</span><span class="sec-title">Full examination — findings for this case</span><span class="sec-arrow open">▶</span>
+    </div>
+    <div class="sec-body open">
+      <div class="exam-step"><div class="step-n">1</div><div class="step-content"><div class="step-label">End of bed</div><div class="step-detail">Median sternotomy scar. Audible metallic click — often heard before stethoscope applied. Bruising from warfarin. Infraclavicular pacemaker scar if device present.</div></div></div>
+      <div class="exam-step"><div class="step-n">2</div><div class="step-content"><div class="step-label">Hands / nails</div><div class="step-detail"><span class="tag t-warn">IE screen</span> Splinter haemorrhages, clubbing. Bruising / petechiae from anticoagulation. Pulse: usually regular — AF = complication / IE.</div></div></div>
+      <div class="exam-step"><div class="step-n">3</div><div class="step-content"><div class="step-label">Face / eyes</div><div class="step-detail">Underlying cause: Marfan's (high-arched palate, lens dislocation), ankylosing spondylitis, RA. Anaemia (haemolysis from valve). Xanthelasma (atherosclerotic).</div></div></div>
+      <div class="exam-step"><div class="step-n">4</div><div class="step-content"><div class="step-label">JVP</div><div class="step-detail"><span class="tag t-neutral">Usually normal</span> if valve functioning well. Raised JVP = RVF / decompensation.</div></div></div>
+      <div class="exam-step"><div class="step-n">5</div><div class="step-content"><div class="step-label">Carotid pulse</div><div class="step-detail"><span class="tag t-neutral">Normal character expected</span> post-AVR. Collapsing pulse = residual / recurrent AR = valve dysfunction.</div></div></div>
+      <div class="exam-step"><div class="step-n">6</div><div class="step-content"><div class="step-label">Precordium</div><div class="step-detail">Sternotomy scar. Apex: <span class="tag t-neutral">normal position expected</span> if functioning well. Pacemaker device infraclavicular if present. No heave expected.</div></div></div>
+      <div class="exam-step"><div class="step-n">7</div><div class="step-content"><div class="step-label">Auscultation — MITRAL FIRST</div><div class="step-detail">
+        <strong>Mitral:</strong> <span class="tag t-neutral">Normal S1</span> expected — no MR in isolated AVR.<br><br>
+        <strong>Aortic:</strong> <span class="tag t-pos">Loud metallic closing click</span> = replaces A2, heard all over precordium. <span class="tag t-pos">Soft ESM (flow murmur)</span> = normal post-AVR. Opening click in early systole possible.<br><br>
+        <span class="tag t-warn">Abnormal:</span> <span class="tag t-neg">Quieter click</span> = clot / vegetation. <span class="tag t-neg">New EDM</span> (lean forward + expiration) = paraprosthetic AR = dysfunction / IE.
+      </div></div></div>
+      <div class="exam-step"><div class="step-n">8</div><div class="step-content"><div class="step-label">Lung bases / ankles / BP</div><div class="step-detail"><span class="tag t-neutral">Clear bases expected</span> if well. Bibasal crackles = LVF from valve dysfunction. Ankle oedema = RVF. BP both arms.</div></div></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="sec-hdr" onclick="tog(this)">
+      <span class="sec-icon">💬</span><span class="sec-title">Ideal presentation script</span><span class="sec-arrow open">▶</span>
+    </div>
+    <div class="sec-body open">
+      <div class="script-card"><div class="sc-hdr diag">1 — State your diagnosis</div><div class="sc-body">"I think this patient has a metallic aortic valve replacement."</div></div>
+      <div class="script-card"><div class="sc-hdr pos">2 — Positive signs supporting this</div><div class="sc-body">"The positive signs supporting this are: a loud metallic closing click heard all over the precordium coinciding with S2, a soft ejection systolic flow murmur in the aortic area, and a median sternotomy scar. The valve appears to be functioning normally — the click is of good intensity and there is no early diastolic murmur to suggest paraprosthetic regurgitation."<div class="sc-note">If underlying cause visible: "The underlying aetiology appears to be [Marfan's / bicuspid valve / RA] based on [specific signs]."</div></div></div>
+      <div class="script-card"><div class="sc-hdr neg">3 — Important negatives (fixed safety screen — every time)</div><div class="sc-body">"Important negatives: there are no peripheral stigmata of infective endocarditis. The patient is in sinus rhythm. There are no signs of left ventricular failure — breath sounds are clear at the bases. There are no signs of right ventricular failure — JVP is not raised and there is no peripheral oedema. There is no RV heave and P2 is not accentuated."</div></div>
+      <div class="script-card"><div class="sc-hdr inc">4 — Of note but less relevant</div><div class="sc-body">"Of note, there is evidence of anticoagulation — bruising — consistent with warfarin therapy for the mechanical valve."</div></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="sec-hdr" onclick="tog(this)">
+      <span class="sec-icon">⚖️</span><span class="sec-title">Differentials</span><span class="sec-arrow">▶</span>
+    </div>
+    <div class="sec-body">
+      <div class="diff-row"><span class="diff-dx">✅ Metallic AVR</span><span class="diff-detail">Click = A2, soft ESM, sternotomy scar</span></div>
+      <div class="diff-row"><span class="diff-dx">Metallic MVR</span><span class="diff-detail">Click = S1 (not A2), best at apex, lateral radiation</span></div>
+      <div class="diff-row"><span class="diff-dx">Tissue (bioprosthetic) AVR</span><span class="diff-detail">No metallic click — soft ESM only, normal heart sounds</span></div>
+      <div class="diff-row"><span class="diff-dx">Valve dysfunction / IE</span><span class="diff-detail">Quieter click + new EDM + IE stigmata</span></div>
+      <div class="diff-row"><span class="diff-dx">CABG only (no valve)</span><span class="diff-detail">Sternotomy scar, no metallic click, normal auscultation</span></div>
+      <div class="diff-row"><span class="diff-dx">Dual valve replacement</span><span class="diff-detail">Clicks at both S1 (apex) and A2 (aortic area)</span></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="sec-hdr" onclick="tog(this)">
+      <span class="sec-icon">🔬</span><span class="sec-title">Investigations and management</span><span class="sec-arrow">▶</span>
+    </div>
+    <div class="sec-body">
+      <div class="two-col">
+        <div class="mini-card">
+          <div class="mini-title">Investigations</div>
+          <div class="mi">ECG — rhythm, AF, LVH</div>
+          <div class="mi">Echo — gradient, paraprosthetic leak, vegetations, LV function</div>
+          <div class="mi">CXR — valve ring opacity, pulmonary oedema</div>
+          <div class="mi">FBC — haemolytic anaemia (↑LDH, reticulocytes)</div>
+          <div class="mi">INR — target 2.5–3.5 for metallic AVR</div>
+          <div class="mi">Blood cultures ×3 if IE suspected</div>
+          <div class="mi">Fluoroscopy — leaflet motion if dysfunction queried</div>
+        </div>
+        <div class="mini-card">
+          <div class="mini-title">Management / key points</div>
+          <div class="mi">Lifelong warfarin — INR 2.5–3.5</div>
+          <div class="mi">Good dental hygiene essential</div>
+          <div class="mi">Metal = durable, needs warfarin</div>
+          <div class="mi">Tissue = no warfarin, less durable (~10yr)</div>
+          <div class="mi">Operative mortality 3–5%</div>
+          <div class="mi">Thromboembolism 1–2%/yr despite warfarin</div>
+          <div class="mi">Prosthetic valve IE mortality ~60%</div>
+          <div class="mi">Early IE: Staph epidermidis (skin)</div>
+          <div class="mi">Late IE: Strep viridans (haematogenous)</div>
+          <div class="mi">Haemolysis: mechanical RBC destruction</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="sec-hdr" onclick="tog(this)">
+      <span class="sec-icon">🎓</span><span class="sec-title">Examiner questions and model answers</span><span class="sec-arrow">▶</span>
+    </div>
+    <div class="sec-body">
+      <div class="qa-item"><div class="qa-q">What are the indications for aortic valve replacement?</div><div class="qa-a">Severe AS (gradient >40mmHg, valve area &lt;1cm²) with symptoms (angina, syncope, dyspnoea). Severe AR with symptoms or declining LV function (EF &lt;50% or dilating LV). Severe AS undergoing other cardiac surgery.</div></div>
+      <div class="qa-item"><div class="qa-q">Why does this patient need warfarin?</div><div class="qa-a">Metallic valves are thrombogenic. Warfarin reduces thromboembolism risk — target INR 2.5–3.5 for AVR. Tissue valves do not require long-term warfarin unless another indication (e.g. AF).</div></div>
+      <div class="qa-item"><div class="qa-q">What are the late complications of prosthetic valve replacement?</div><div class="qa-a">Thromboembolism (1–2%/yr), bleeding (fatal 0.6%, major 3%/yr), haemolysis, IE (early = Staph epidermidis; late = Strep viridans), bioprosthetic dysfunction ~10yr, AF (especially MVR), paravalvular regurgitation.</div></div>
+      <div class="qa-item"><div class="qa-q">How would you identify valve dysfunction on examination?</div><div class="qa-a">Quieter metallic click (clot / vegetation reducing leaflet excursion), new EDM (paraprosthetic AR), new PSM, new signs of heart failure, peripheral IE stigmata. Any change in click character is significant.</div></div>
+      <div class="qa-item"><div class="qa-q">Metal vs tissue valve — how do you decide?</div><div class="qa-a">Metal: young patients, already on warfarin, durable. Tissue: elderly, high bleeding risk, women considering pregnancy — no warfarin needed but less durable (~10yr, can be replaced with valve-in-valve TAVI).</div></div>
+      <div class="qa-item"><div class="qa-q">The patient needs surgery — what about their warfarin?</div><div class="qa-a">Bridging anticoagulation — stop warfarin 5 days pre-op, bridge with LMWH. Restart post-op once haemostasis established. Metallic AVR is high thrombotic risk — bridging usually recommended. Joint decision with haematology and cardiology.</div></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="sec-hdr" onclick="tog(this)">
+      <span class="sec-icon">✗</span><span class="sec-title">Common pitfalls</span><span class="sec-arrow">▶</span>
+    </div>
+    <div class="sec-body">
+      <div class="pitfall">Confusing AVR (click = S2) with MVR (click = S1) — time the click carefully against the apex beat</div>
+      <div class="pitfall">Missing a quiet click — listen on approach; metallic click often audible from the doorway</div>
+      <div class="pitfall">Not commenting on whether the valve appears functioning normally — always state click intensity and whether any new murmur is present</div>
+      <div class="pitfall">Forgetting the IE screen — prosthetic valve IE is high stakes and examiners always probe this specifically</div>
+      <div class="pitfall">Calling the soft ESM pathological — a flow murmur is entirely normal post-AVR and does not indicate dysfunction</div>
+      <div class="pitfall">Not looking for the underlying cause — always assess for Marfan's, ankylosing spondylitis, RA, bicuspid valve stigmata</div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== CASE 1: AS ==================== -->
+<div class="case-page" id="case-1">
+  <div class="case-hdr">
+    <div class="eyebrow">Case 02 · 12.0%</div>
+    <h1>Aortic Stenosis</h1>
+    <div class="badge-row">
+      <span class="badge badge-red">12.0%</span>
+      <span class="badge badge-blue">Station 3</span>
+      <span class="badge badge-amber">Stem: exertional dyspnoea / syncope / angina</span>
+    </div>
+  </div>
+  <div class="spot-box">
+    <div class="spot-label">⚡ Spot diagnosis</div>
+    <div class="spot-items">
+      <span class="spot-item">Slow-rising plateau pulse</span>
+      <span class="spot-item">Heaving undisplaced apex</span>
+      <span class="spot-item">Harsh ESM at aortic area</span>
+      <span class="spot-item">Radiates to carotids</span>
+      <span class="spot-item">Soft / absent A2</span>
+      <span class="spot-item">S4 on bell</span>
+    </div>
+  </div>
+  <div class="section">
+    <div class="sec-hdr" onclick="tog(this)"><span class="sec-icon">🔎</span><span class="sec-title">Full examination — findings</span><span class="sec-arrow open">▶</span></div>
+    <div class="sec-body open">
+      <div class="exam-step"><div class="step-n">1</div><div class="step-content"><div class="step-label">End of bed</div><div class="step-detail">Comfortable or breathless (severe). Sternotomy scar if post-AVR (tissue valve now). Xanthelasma visible.</div></div></div>
+      <div class="exam-step"><div class="step-n">2</div><div class="step-content"><div class="step-label">Hands / pulse</div><div class="step-detail"><span class="tag t-pos">Slow-rising, low-volume, plateau pulse</span> — key severity marker. The slower the rise, the more severe. Note rhythm — AF = complication.</div></div></div>
+      <div class="exam-step"><div class="step-n">3</div><div class="step-content"><div class="step-label">Face / eyes</div><div class="step-detail">Xanthelasma (atherosclerotic). Conjunctival pallor. Marfan's if young (bicuspid valve).</div></div></div>
+      <div class="exam-step"><div class="step-n">4</div><div class="step-content"><div class="step-label">Carotid</div><div class="step-detail"><span class="tag t-pos">Slow-rising plateau carotid</span> — parvus et tardus. Narrow pulse pressure.</div></div></div>
+      <div class="exam-step"><div class="step-n">5</div><div class="step-content"><div class="step-label">JVP</div><div class="step-detail"><span class="tag t-neutral">Usually normal</span>. Raised = RVF (severe late disease).</div></div></div>
+      <div class="exam-step"><div class="step-n">6</div><div class="step-content"><div class="step-label">Precordium</div><div class="step-detail"><span class="tag t-pos">Heaving, non-displaced apex</span> — pressure-loaded LV. Systolic thrill in aortic area (severe). No parasternal heave unless pulmonary HTN.</div></div></div>
+      <div class="exam-step"><div class="step-n">7</div><div class="step-content"><div class="step-label">Auscultation — MITRAL FIRST</div><div class="step-detail">
+        <strong>Bell at apex:</strong> <span class="tag t-pos">S4</span> — stiff non-compliant LV, key severity marker. Check for MR.<br><br>
+        <strong>Diaphragm at aortic area:</strong> <span class="tag t-pos">Harsh ESM</span> crescendo-decrescendo, 2nd ICS RSE. <span class="tag t-pos">Radiates to carotids</span>. <span class="tag t-pos">Soft/absent A2</span> — severity marker. Delayed peak = more severe.<br><br>
+        <strong>Lean forward + expiration, lower LSE:</strong> always exclude coexistent AR.
+      </div></div></div>
+      <div class="exam-step"><div class="step-n">8</div><div class="step-content"><div class="step-label">BP / completions</div><div class="step-detail"><span class="tag t-pos">Narrow pulse pressure</span>. Bibasal crackles (severe LVF). Ankle oedema.</div></div></div>
+    </div>
+  </div>
+  <div class="section">
+    <div class="sec-hdr" onclick="tog(this)"><span class="sec-icon">💬</span><span class="sec-title">Ideal presentation script</span><span class="sec-arrow open">▶</span></div>
+    <div class="sec-body open">
+      <div class="script-card"><div class="sc-hdr diag">1</div><div class="sc-body">"I think this patient has aortic stenosis."</div></div>
+      <div class="script-card"><div class="sc-hdr pos">2</div><div class="sc-body">"The positive signs are: a slow-rising, low-volume plateau pulse, a heaving non-displaced apex consistent with a pressure-loaded LV, a harsh ejection systolic murmur at the aortic area radiating to the carotids, a soft A2, and an S4 on bell auscultation. These findings suggest [moderate / severe] aortic stenosis."</div></div>
+      <div class="script-card"><div class="sc-hdr neg">3</div><div class="sc-body">"Important negatives: no IE stigmata. Sinus rhythm. No LVF — bases clear. No RVF. No pulmonary hypertension. No early diastolic murmur to suggest coexistent AR."</div></div>
+      <div class="script-card"><div class="sc-hdr inc">4</div><div class="sc-body">"Of note, there is xanthelasma suggesting an atherosclerotic aetiology."</div></div>
+    </div>
+  </div>
+  <div class="section">
+    <div class="sec-hdr" onclick="tog(this)"><span class="sec-icon">📊</span><span class="sec-title">Severity markers</span><span class="sec-arrow">▶</span></div>
+    <div class="sec-body">
+      <table class="sev-table">
+        <tr><th>Marker</th><th>Significance</th></tr>
+        <tr><td>Slow-rising pulse</td><td>More severe = slower rise to peak</td></tr>
+        <tr><td>Narrow pulse pressure</td><td>Reduced stroke volume</td></tr>
+        <tr><td>Soft / absent A2</td><td>Immobile calcified leaflets</td></tr>
+        <tr><td>Delayed ESM peak</td><td>Longer to reach peak = more severe</td></tr>
+        <tr><td>Heaving non-displaced apex</td><td>Pressure-loaded LV</td></tr>
+        <tr><td>S4 on bell</td><td>Stiff, non-compliant LV</td></tr>
+        <tr><td>Signs of LVF</td><td>Pre-terminal — very severe</td></tr>
+      </table>
+      <div class="warn-box">Murmur loudness does NOT correlate with severity. Severe AS in low-output state can have a soft or absent murmur.</div>
+    </div>
+  </div>
+  <div class="section">
+    <div class="sec-hdr" onclick="tog(this)"><span class="sec-icon">🎓</span><span class="sec-title">Examiner questions</span><span class="sec-arrow">▶</span></div>
+    <div class="sec-body">
+      <div class="qa-item"><div class="qa-q">Cardinal symptoms and their significance?</div><div class="qa-a">Angina (3yr survival without intervention), syncope (3yr), dyspnoea / heart failure (1–2yr). Symptom onset = critical turning point — AVR / TAVI indicated once symptoms develop.</div></div>
+      <div class="qa-item"><div class="qa-q">How do you assess severity clinically?</div><div class="qa-a">Slow-rising pulse, narrow pulse pressure, soft/absent A2, delayed ESM peak, heaving apex, S4, LVF signs. Murmur loudness does NOT correlate — severe AS in low-output state can have a soft or absent murmur.</div></div>
+      <div class="qa-item"><div class="qa-q">Indications for intervention?</div><div class="qa-a">Severe AS + symptoms. EF &lt;50%. Severe AS undergoing other cardiac surgery. TAVI for high / intermediate surgical risk. SAVR for lower-risk, younger patients.</div></div>
+      <div class="qa-item"><div class="qa-q">What is TAVI?</div><div class="qa-a">Transcatheter aortic valve implantation — percutaneous replacement via femoral artery, avoiding sternotomy. Used in high / intermediate surgical risk. Increasingly used in younger, lower-risk patients at experienced centres.</div></div>
+      <div class="qa-item"><div class="qa-q">Causes of AS?</div><div class="qa-a">Calcific degeneration (most common, elderly). Bicuspid aortic valve (most common in &lt;70yr — congenitally bicuspid valves calcify earlier). Rheumatic (rare in UK — associated with MS).</div></div>
+    </div>
+  </div>
+  <div class="section">
+    <div class="sec-hdr" onclick="tog(this)"><span class="sec-icon">✗</span><span class="sec-title">Common pitfalls</span><span class="sec-arrow">▶</span></div>
+    <div class="sec-body">
+      <div class="pitfall">Judging severity by murmur loudness — severe low-output AS often has a soft murmur</div>
+      <div class="pitfall">Missing the slow-rising pulse — feel the carotid, not just the radial</div>
+      <div class="pitfall">Not excluding AR — always lean forward and listen at lower LSE in expiration</div>
+      <div class="pitfall">Forgetting S4 on bell — key severity marker, easily missed without bell at apex</div>
+      <div class="pitfall">Not grading severity — always commit to mild / moderate / severe with supporting evidence</div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== CASE 2: MR ==================== -->
+<div class="case-page" id="case-2">
+  <div class="case-hdr">
+    <div class="eyebrow">Case 03 · 8.1%</div>
+    <h1>Mitral Regurgitation</h1>
+    <div class="badge-row">
+      <span class="badge badge-red">8.1%</span><span class="badge badge-blue">Station 3</span>
+      <span class="badge badge-amber">Stem: dyspnoea / fatigue / palpitations</span>
+    </div>
+  </div>
+  <div class="spot-box"><div class="spot-label">⚡ Spot diagnosis</div><div class="spot-items">
+    <span class="spot-item">Displaced, thrusting apex</span><span class="spot-item">PSM at apex → axilla</span>
+    <span class="spot-item">Soft S1</span><span class="spot-item">S3 on bell</span><span class="spot-item">AF common</span>
+  </div></div>
+  <div class="section"><div class="sec-hdr" onclick="tog(this)"><span class="sec-icon">🔎</span><span class="sec-title">Full examination — findings</span><span class="sec-arrow open">▶</span></div><div class="sec-body open">
+    <div class="exam-step"><div class="step-n">1</div><div class="step-content"><div class="step-label">End of bed</div><div class="step-detail">Breathless. Look for cause: RA hands (rheumatic), Marfan's, lateral thoracotomy scar (repair), sternotomy (MVR).</div></div></div>
+    <div class="exam-step"><div class="step-n">2</div><div class="step-content"><div class="step-label">Pulse</div><div class="step-detail">Rate + rhythm — <span class="tag t-warn">AF common</span> in chronic MR. Volume may be reduced in severe decompensation.</div></div></div>
+    <div class="exam-step"><div class="step-n">3</div><div class="step-content"><div class="step-label">JVP</div><div class="step-detail"><span class="tag t-neutral">Normal unless RVF.</span> Raised = significant decompensation.</div></div></div>
+    <div class="exam-step"><div class="step-n">4</div><div class="step-content"><div class="step-label">Precordium</div><div class="step-detail"><span class="tag t-pos">Displaced, thrusting, hyperdynamic apex</span> — volume-loaded LV, key severity marker. Systolic thrill at apex (severe).</div></div></div>
+    <div class="exam-step"><div class="step-n">5</div><div class="step-content"><div class="step-label">Auscultation — MITRAL FIRST</div><div class="step-detail">
+      <strong>Bell + diaphragm at apex, left lateral + expiration:</strong><br>
+      <span class="tag t-neg">Soft S1</span> (leaflets not coapting). <span class="tag t-pos">PSM at apex</span> — loud, blowing, throughout systole. <span class="tag t-pos">Radiates to axilla</span>. <span class="tag t-pos">S3 on bell</span> (rapid LV filling = volume overload = severity marker). <span class="tag t-pos">Wide A2-P2 split</span> (LV empties faster). Check aortic area for coexistent disease.
+    </div></div></div>
+    <div class="exam-step"><div class="step-n">6</div><div class="step-content"><div class="step-label">Lung bases / ankles</div><div class="step-detail">Bibasal crackles (LVF). Peripheral oedema (biventricular failure).</div></div></div>
+  </div></div>
+  <div class="section"><div class="sec-hdr" onclick="tog(this)"><span class="sec-icon">💬</span><span class="sec-title">Presentation script</span><span class="sec-arrow open">▶</span></div><div class="sec-body open">
+    <div class="script-card"><div class="sc-hdr diag">1</div><div class="sc-body">"I think this patient has mitral regurgitation."</div></div>
+    <div class="script-card"><div class="sc-hdr pos">2</div><div class="sc-body">"The positive signs are: a displaced, thrusting apex in the [X]th ICS consistent with LV volume overload, a soft S1, a pansystolic murmur at the apex radiating to the axilla accentuated in the left lateral position, and an S3 on bell auscultation. These findings suggest [moderate / severe] mitral regurgitation."</div></div>
+    <div class="script-card"><div class="sc-hdr neg">3</div><div class="sc-body">"Important negatives: no IE stigmata. [Sinus rhythm / AF — common in chronic MR]. No LVF — bases clear. No RVF. No pulmonary hypertension."</div></div>
+    <div class="script-card"><div class="sc-hdr inc">4</div><div class="sc-body">"Of note, there are [RA changes / Marfan's features] suggesting a [rheumatic / connective tissue] aetiology."</div></div>
+  </div></div>
+  <div class="section"><div class="sec-hdr" onclick="tog(this)"><span class="sec-icon">🎓</span><span class="sec-title">Examiner questions</span><span class="sec-arrow">▶</span></div><div class="sec-body">
+    <div class="qa-item"><div class="qa-q">Causes of MR?</div><div class="qa-a">Primary: MVP (most common in West), rheumatic, IE, papillary muscle rupture (post-MI), connective tissue (Marfan's). Secondary / functional: dilated cardiomyopathy with annular dilatation — LV dilates and pulls leaflets apart.</div></div>
+    <div class="qa-item"><div class="qa-q">When to intervene?</div><div class="qa-a">Severe MR + symptoms. EF &lt;60% or LVESD >45mm even asymptomatic — LV decompensating. Repair preferred over replacement — better LV function preservation, no anticoagulation.</div></div>
+    <div class="qa-item"><div class="qa-q">Why is EF &lt;60% the threshold in MR?</div><div class="qa-a">MR allows LV to eject into low-pressure LA — EF is artificially elevated. EF 60% in MR ≈ EF 40% normally. EF &lt;60% therefore indicates significant underlying LV dysfunction.</div></div>
+    <div class="qa-item"><div class="qa-q">Acute vs chronic MR?</div><div class="qa-a">Acute (papillary rupture post-MI, IE): flash pulmonary oedema, cardiogenic shock on non-dilated LV — emergency surgery. Chronic: LV dilates gradually, compensated for years before symptoms develop.</div></div>
+  </div></div>
+</div>
+
+<!-- ==================== CASE 3: AR ==================== -->
+<div class="case-page" id="case-3">
+  <div class="case-hdr">
+    <div class="eyebrow">Case 04 · 6.9%</div>
+    <h1>Aortic Regurgitation</h1>
+    <div class="badge-row">
+      <span class="badge badge-red">6.9%</span><span class="badge badge-blue">Station 3</span>
+      <span class="badge badge-amber">Stem: dyspnoea / palpitations</span>
+    </div>
+  </div>
+  <div class="spot-box"><div class="spot-label">⚡ Spot diagnosis</div><div class="spot-items">
+    <span class="spot-item">Collapsing (waterhammer) pulse</span><span class="spot-item">Wide pulse pressure</span>
+    <span class="spot-item">Displaced thrusting apex</span><span class="spot-item">EDM at lower LSE (lean forward)</span>
+    <span class="spot-item">Corrigan's sign</span><span class="spot-item">De Musset's (head nodding)</span>
+  </div></div>
+  <div class="section"><div class="sec-hdr" onclick="tog(this)"><span class="sec-icon">🔎</span><span class="sec-title">Full examination — findings</span><span class="sec-arrow open">▶</span></div><div class="sec-body open">
+    <div class="exam-step"><div class="step-n">1</div><div class="step-content"><div class="step-label">End of bed</div><div class="step-detail">Visible head nodding (De Musset's). Corrigan's sign (vigorous carotid pulsation). Look for Marfan's, ankylosing spondylitis (question-mark posture), RA.</div></div></div>
+    <div class="exam-step"><div class="step-n">2</div><div class="step-content"><div class="step-label">Hands / pulse</div><div class="step-detail"><span class="tag t-pos">Collapsing (waterhammer) pulse</span> — confirm by lifting arm. <span class="tag t-pos">Wide pulse pressure</span> (e.g. 160/40). Quincke's sign (nail bed capillary pulsation).</div></div></div>
+    <div class="exam-step"><div class="step-n">3</div><div class="step-content"><div class="step-label">Face / neck</div><div class="step-detail">Marfan's (lens dislocation, high-arched palate). Ankylosing spondylitis (iritis). RA. Corrigan's (vigorous carotid pulsation).</div></div></div>
+    <div class="exam-step"><div class="step-n">4</div><div class="step-content"><div class="step-label">Precordium</div><div class="step-detail"><span class="tag t-pos">Displaced, thrusting, hyperdynamic apex</span> — volume-loaded LV. May be 6th ICS anterior axillary line in severe. No parasternal heave.</div></div></div>
+    <div class="exam-step"><div class="step-n">5</div><div class="step-content"><div class="step-label">Auscultation — MITRAL FIRST ★ key manoeuvre</div><div class="step-detail">
+      <strong>Bell at apex:</strong> <span class="tag t-pos">Austin-Flint murmur</span> (MDM — severe AR: regurgitant jet impinges on anterior mitral leaflet = functional MS). <span class="tag t-pos">S3</span> (volume overload).<br><br>
+      <strong>Lean forward + expiration, diaphragm at lower LSE:</strong> <span class="tag t-pos">High-pitched EDM</span> — blowing, decrescendo. Aortic area: soft ESM (high flow). Distinguish from MS (no OS, normal/soft S1, wide pulse pressure).
+    </div></div></div>
+    <div class="exam-step"><div class="step-n">6</div><div class="step-content"><div class="step-label">BP / completions</div><div class="step-detail"><span class="tag t-pos">Wide pulse pressure</span> on BP. Lung bases. Mention Duroziez's sign (femoral) to complete.</div></div></div>
+  </div></div>
+  <div class="section"><div class="sec-hdr" onclick="tog(this)"><span class="sec-icon">💬</span><span class="sec-title">Presentation script</span><span class="sec-arrow open">▶</span></div><div class="sec-body open">
+    <div class="script-card"><div class="sc-hdr diag">1</div><div class="sc-body">"I think this patient has aortic regurgitation."</div></div>
+    <div class="script-card"><div class="sc-hdr pos">2</div><div class="sc-body">"The positive signs are: a collapsing pulse with a wide pulse pressure of [X/Y], a displaced thrusting apex in the [X]th ICS, and an early diastolic murmur at the lower left sternal edge heard best leaning forward in expiration. There is an S3. These suggest [moderate / severe] AR with a volume-loaded, dilated LV."<div class="sc-note">If Austin-Flint present: "There is also a mid-diastolic murmur at the apex on bell — an Austin-Flint murmur — consistent with severe AR."</div></div></div>
+    <div class="script-card"><div class="sc-hdr neg">3</div><div class="sc-body">"Important negatives: no IE stigmata. Sinus rhythm. No LVF — bases clear. No RVF. No pulmonary hypertension. There are no features of Marfan's syndrome or ankylosing spondylitis on inspection."<div class="sc-note">Marfan's / AS exclusion is a disease-specific negative for AR — always include it here.</div></div></div>
+  </div></div>
+  <div class="section"><div class="sec-hdr" onclick="tog(this)"><span class="sec-icon">🎓</span><span class="sec-title">Examiner questions</span><span class="sec-arrow">▶</span></div><div class="sec-body">
+    <div class="qa-item"><div class="qa-q">Causes of AR?</div><div class="qa-a">Valve: bicuspid aortic valve, IE, rheumatic, myxomatous. Aortic root dilatation: Marfan's, ankylosing spondylitis, RA, syphilitic aortitis, hypertension, aortic dissection.</div></div>
+    <div class="qa-item"><div class="qa-q">When to intervene?</div><div class="qa-a">Severe AR + symptoms. EF &lt;50%. LVESD >50mm (or >25mm/m² BSA) even asymptomatic — LV dilating = decompensation imminent.</div></div>
+    <div class="qa-item"><div class="qa-q">What is the Austin-Flint murmur?</div><div class="qa-a">MDM at apex in severe AR — regurgitant jet impinges on the anterior mitral leaflet causing functional MS. Distinguished from true MS by: no opening snap, normal/soft S1, wide pulse pressure, collapsing pulse.</div></div>
+    <div class="qa-item"><div class="qa-q">Eponymous signs in AR?</div><div class="qa-a">All reflect wide pulse pressure / hyperdynamic circulation: Corrigan's (carotid pulsation), De Musset's (head nodding), Quincke's (nail bed pulsation), Duroziez's (femoral bruit), Traube's (pistol shot femoral), Müller's (uvula pulsation).</div></div>
+  </div></div>
+</div>
+
+<!-- ==================== CASE 4: MVR ==================== -->
+<div class="case-page" id="case-4">
+  <div class="case-hdr">
+    <div class="eyebrow">Case 05 · 6.4%</div>
+    <h1>Metallic Mitral Valve Replacement</h1>
+    <div class="badge-row">
+      <span class="badge badge-red">6.4%</span><span class="badge badge-blue">Station 3</span>
+      <span class="badge badge-amber">Stem: dyspnoea / palpitations</span>
+    </div>
+  </div>
+  <div class="spot-box"><div class="spot-label">⚡ Spot diagnosis</div><div class="spot-items">
+    <span class="spot-item">Metallic click = S1 at apex</span><span class="spot-item">Lateral thoracotomy OR sternotomy</span>
+    <span class="spot-item">Malar flush (underlying MS)</span><span class="spot-item">Usually in AF</span>
+    <span class="spot-item">Anticoagulation signs</span>
+  </div></div>
+  <div class="section"><div class="sec-hdr" onclick="tog(this)"><span class="sec-icon">🔎</span><span class="sec-title">Full examination — findings</span><span class="sec-arrow open">▶</span></div><div class="sec-body open">
+    <div class="exam-step"><div class="step-n">1</div><div class="step-content"><div class="step-label">End of bed</div><div class="step-detail">Lateral thoracotomy (MVR, valvotomy) or sternotomy. Malar flush (underlying MS). Audible click = S1. Bruising (warfarin).</div></div></div>
+    <div class="exam-step"><div class="step-n">2</div><div class="step-content"><div class="step-label">Pulse</div><div class="step-detail"><span class="tag t-warn">AF very common</span> — chronic LA dilatation from prior MS. Note rate, rhythm. IE screen on hands.</div></div></div>
+    <div class="exam-step"><div class="step-n">3</div><div class="step-content"><div class="step-label">JVP</div><div class="step-detail">May be raised if RVF from longstanding pulmonary HTN. Giant CV waves if TR.</div></div></div>
+    <div class="exam-step"><div class="step-n">4</div><div class="step-content"><div class="step-label">Precordium</div><div class="step-detail">Scar. Parasternal heave if pulmonary HTN. Tapping apex possible if residual elevated pressure.</div></div></div>
+    <div class="exam-step"><div class="step-n">5</div><div class="step-content"><div class="step-label">Auscultation — MITRAL FIRST</div><div class="step-detail">
+      <span class="tag t-pos">Loud metallic closing click at apex = S1</span> — good lateral radiation. <span class="tag t-pos">Opening click (OC) in early diastole</span> possible. Low-frequency diastolic rumble after OC (bell) = normal flow across prosthesis.<br><br>
+      <span class="tag t-warn">Abnormal:</span> <span class="tag t-neg">Quieter click</span> = dysfunction / clot / vegetation. <span class="tag t-neg">PSM</span> = paraprosthetic MR = dysfunction / IE.<br><br>
+      Aortic area — faint click conducted from mitral. <strong>Key distinction:</strong> AVR click = A2 (S2); MVR click = S1.
+    </div></div></div>
+    <div class="exam-step"><div class="step-n">6</div><div class="step-content"><div class="step-label">Completions</div><div class="step-detail">Lung bases (LVF). Ankle oedema (RVF). BP both arms.</div></div></div>
+  </div></div>
+  <div class="section"><div class="sec-hdr" onclick="tog(this)"><span class="sec-icon">💬</span><span class="sec-title">Presentation script</span><span class="sec-arrow open">▶</span></div><div class="sec-body open">
+    <div class="script-card"><div class="sc-hdr diag">1</div><div class="sc-body">"I think this patient has a metallic mitral valve replacement."</div></div>
+    <div class="script-card"><div class="sc-hdr pos">2</div><div class="sc-body">"The positive signs are: a loud metallic closing click at the apex coinciding with S1 with good lateral radiation, a [lateral thoracotomy / sternotomy] scar, and an opening click in early diastole. The valve appears to be functioning normally — the click is of good intensity and there is no pansystolic murmur to suggest paraprosthetic regurgitation."</div></div>
+    <div class="script-card"><div class="sc-hdr neg">3</div><div class="sc-body">"Important negatives: no IE stigmata. [The patient is in AF — common following MVR due to LA dilatation from the underlying condition.] No LVF. No RVF. No pulmonary hypertension."</div></div>
+  </div></div>
+  <div class="section"><div class="sec-hdr" onclick="tog(this)"><span class="sec-icon">🎓</span><span class="sec-title">Examiner questions</span><span class="sec-arrow">▶</span></div><div class="sec-body">
+    <div class="qa-item"><div class="qa-q">How do you distinguish AVR from MVR?</div><div class="qa-a">AVR: click replaces A2 (S2) — heard all over, soft ESM flow murmur. MVR: click replaces S1 — best at apex with lateral radiation, opening click in diastole, diastolic rumble with bell.</div></div>
+    <div class="qa-item"><div class="qa-q">INR target for MVR?</div><div class="qa-a">INR 3.0–4.0 — higher than AVR (2.5–3.5) due to greater thromboembolism risk in the mitral position (lower flow velocity).</div></div>
+    <div class="qa-item"><div class="qa-q">Why is AF so common after MVR?</div><div class="qa-a">Longstanding MS causes LA dilatation before MVR. LA dilatation persists post-operatively. AF is often permanent — rate control + anticoagulation is the usual management.</div></div>
+  </div></div>
+</div>
+
+<!-- ==================== CASE 5: MS ==================== -->
+<div class="case-page" id="case-5">
+  <div class="case-hdr">
+    <div class="eyebrow">Case 06 · 6.1%</div>
+    <h1>Mitral Stenosis</h1>
+    <div class="badge-row">
+      <span class="badge badge-red">6.1%</span><span class="badge badge-blue">Station 3</span>
+      <span class="badge badge-amber">Stem: dyspnoea / haemoptysis / AF</span>
+    </div>
+  </div>
+  <div class="spot-box"><div class="spot-label">⚡ Spot diagnosis</div><div class="spot-items">
+    <span class="spot-item">Malar flush</span><span class="spot-item">AF on pulse</span>
+    <span class="spot-item">Tapping apex (palpable S1)</span><span class="spot-item">Loud S1 + opening snap</span>
+    <span class="spot-item">MDM — bell, left lateral, expiration</span>
+  </div></div>
+  <div class="section"><div class="sec-hdr" onclick="tog(this)"><span class="sec-icon">🔎</span><span class="sec-title">Full examination — findings</span><span class="sec-arrow open">▶</span></div><div class="sec-body open">
+    <div class="exam-step"><div class="step-n">1</div><div class="step-content"><div class="step-label">End of bed</div><div class="step-detail"><span class="tag t-pos">Malar flush</span> — bilateral rosy cheeks, low CO / peripheral vasoconstriction. Breathless. Lateral thoracotomy scar (valvotomy) possible.</div></div></div>
+    <div class="exam-step"><div class="step-n">2</div><div class="step-content"><div class="step-label">Pulse</div><div class="step-detail"><span class="tag t-warn">AF very common</span> — often first presentation. Low-volume pulse.</div></div></div>
+    <div class="exam-step"><div class="step-n">3</div><div class="step-content"><div class="step-label">JVP</div><div class="step-detail">Raised if RVF from pulmonary HTN. Giant a-waves if pulmonary HTN + sinus rhythm. Absent a-wave = AF.</div></div></div>
+    <div class="exam-step"><div class="step-n">4</div><div class="step-content"><div class="step-label">Precordium</div><div class="step-detail"><span class="tag t-pos">Tapping apex</span> — palpable S1 (mobile leaflets snapping shut). <span class="tag t-pos">Parasternal heave</span> (RVH from pulmonary HTN — severity marker). No LV displacement (LV not volume-loaded in MS).</div></div></div>
+    <div class="exam-step"><div class="step-n">5</div><div class="step-content"><div class="step-label">Auscultation — MITRAL FIRST ★ Bell essential</div><div class="step-detail">
+      <strong>Bell at apex, left lateral + expiration:</strong><br>
+      <span class="tag t-pos">Loud S1</span> (mobile leaflets — soft when calcified = severe). <span class="tag t-pos">Opening snap after A2</span> — short A2-OS = high LA pressure = severe. <span class="tag t-pos">MDM after OS</span> — low-pitched rumble. Presystolic accentuation (if sinus rhythm — lost in AF).<br><br>
+      <strong>Pulmonary area:</strong> <span class="tag t-pos">Loud P2</span> = pulmonary HTN (severity marker). <span class="tag t-pos">RV heave</span>.
+    </div></div></div>
+    <div class="exam-step"><div class="step-n">6</div><div class="step-content"><div class="step-label">Completions</div><div class="step-detail">Bibasal crackles (LVF — late). Signs of RVF. BP — low pulse pressure.</div></div></div>
+  </div></div>
+  <div class="section"><div class="sec-hdr" onclick="tog(this)"><span class="sec-icon">💬</span><span class="sec-title">Presentation script</span><span class="sec-arrow open">▶</span></div><div class="sec-body open">
+    <div class="script-card"><div class="sc-hdr diag">1</div><div class="sc-body">"I think this patient has mitral stenosis."</div></div>
+    <div class="script-card"><div class="sc-hdr pos">2</div><div class="sc-body">"The positive signs are: a malar flush, a tapping apex, a loud S1 with an opening snap, and a mid-diastolic murmur best heard with the bell at the apex in the left lateral position in expiration. There is a parasternal heave and an accentuated P2 suggesting pulmonary hypertension. These findings suggest [moderate / severe] mitral stenosis."</div></div>
+    <div class="script-card"><div class="sc-hdr neg">3</div><div class="sc-body">"Important negatives: no IE stigmata. [The patient is in AF — common in MS.] [Signs of RVF present / absent]. Pulmonary hypertension [present / absent]."</div></div>
+  </div></div>
+  <div class="section"><div class="sec-hdr" onclick="tog(this)"><span class="sec-icon">📊</span><span class="sec-title">Severity markers</span><span class="sec-arrow">▶</span></div><div class="sec-body">
+    <table class="sev-table">
+      <tr><th>Marker</th><th>Significance</th></tr>
+      <tr><td>Short A2-OS interval</td><td>High LA pressure = severe</td></tr>
+      <tr><td>Longer MDM</td><td>Worse stenosis = longer murmur</td></tr>
+      <tr><td>Soft S1</td><td>Calcified immobile leaflets = paradoxically severe</td></tr>
+      <tr><td>AF</td><td>Chronicity and severity</td></tr>
+      <tr><td>Pulmonary HTN (RV heave, loud P2)</td><td>Longstanding severe MS</td></tr>
+      <tr><td>Signs of RVF</td><td>Very severe, longstanding</td></tr>
+    </table>
+  </div></div>
+  <div class="section"><div class="sec-hdr" onclick="tog(this)"><span class="sec-icon">🎓</span><span class="sec-title">Examiner questions</span><span class="sec-arrow">▶</span></div><div class="sec-body">
+    <div class="qa-item"><div class="qa-q">Most common cause?</div><div class="qa-a">Rheumatic heart disease (&gt;90%). Commissural fusion, leaflet thickening, subvalvular apparatus fibrosis. Rare: congenital, carcinoid, SLE.</div></div>
+    <div class="qa-item"><div class="qa-q">Treatment options?</div><div class="qa-a">Medical: rate control (AF), anticoagulation (high stroke risk), diuretics. Intervention: PMBV (if anatomy suitable — no MR, no LA clot) or surgical MVR. PMBV preferred if anatomy favourable. Echo: valve area &lt;1cm² = severe.</div></div>
+    <div class="qa-item"><div class="qa-q">Why does MS cause haemoptysis?</div><div class="qa-a">Elevated LA pressure → pulmonary venous HTN → pulmonary oedema / rupture of bronchial veins. Frank haemoptysis = Winterbottom haemoptysis from bronchial vein rupture.</div></div>
+  </div></div>
+  <div class="section"><div class="sec-hdr" onclick="tog(this)"><span class="sec-icon">✗</span><span class="sec-title">Common pitfalls</span><span class="sec-arrow">▶</span></div><div class="sec-body">
+    <div class="pitfall">Using diaphragm for MDM — always use bell at apex in left lateral position in expiration</div>
+    <div class="pitfall">Missing the opening snap — listen carefully just after A2</div>
+    <div class="pitfall">Not correlating A2-OS interval with severity — shorter = more severe</div>
+    <div class="pitfall">Forgetting that AF abolishes presystolic accentuation</div>
+  </div></div>
+</div>
+
+<!-- ==================== CASE 6: AF ==================== -->
+<div class="case-page" id="case-6">
+  <div class="case-hdr">
+    <div class="eyebrow">Case 07 · 5.3%</div>
+    <h1>Atrial Fibrillation</h1>
+    <div class="badge-row">
+      <span class="badge badge-red">5.3%</span><span class="badge badge-blue">Station 3</span>
+      <span class="badge badge-amber">Stem: palpitations / dyspnoea / incidental finding</span>
+    </div>
+  </div>
+  <div class="spot-box"><div class="spot-label">⚡ Spot diagnosis</div><div class="spot-items">
+    <span class="spot-item">Irregularly irregular pulse</span><span class="spot-item">Pulse deficit</span>
+    <span class="spot-item">Absent a-wave in JVP</span><span class="spot-item">Varying S1 intensity</span>
+    <span class="spot-item">Look for underlying cause</span>
+  </div></div>
+  <div class="section"><div class="sec-hdr" onclick="tog(this)"><span class="sec-icon">🔎</span><span class="sec-title">Full examination — findings</span><span class="sec-arrow open">▶</span></div><div class="sec-body open">
+    <div class="exam-step"><div class="step-n">1</div><div class="step-content"><div class="step-label">End of bed</div><div class="step-detail">Look for underlying cause: thyrotoxicosis (tremor, exophthalmos, goitre), mitral valve disease (malar flush), hypertension signs, alcohol stigmata.</div></div></div>
+    <div class="exam-step"><div class="step-n">2</div><div class="step-content"><div class="step-label">Pulse</div><div class="step-detail"><span class="tag t-pos">Irregularly irregular</span> — varying rate and volume. Count for 30 seconds minimum. Note rate — fast vs rate-controlled. Pulse deficit (radial &lt; apical rate).</div></div></div>
+    <div class="exam-step"><div class="step-n">3</div><div class="step-content"><div class="step-label">JVP</div><div class="step-detail"><span class="tag t-pos">Absent a-wave</span> — no atrial contraction. Only x and y descents. Raised if RVF.</div></div></div>
+    <div class="exam-step"><div class="step-n">4</div><div class="step-content"><div class="step-label">Precordium / auscultation</div><div class="step-detail"><span class="tag t-pos">Varying S1 intensity</span> — hallmark of AF. Look for underlying valve disease (MS, MR, MVP). Thyroid signs.</div></div></div>
+    <div class="exam-step"><div class="step-n">5</div><div class="step-content"><div class="step-label">Completions</div><div class="step-detail">BP (hypertension — most common cause). HF signs. Thyroid — palpate goitre. Stroke signs — neurological deficit (complication).</div></div></div>
+  </div></div>
+  <div class="section"><div class="sec-hdr" onclick="tog(this)"><span class="sec-icon">💬</span><span class="sec-title">Presentation script</span><span class="sec-arrow open">▶</span></div><div class="sec-body open">
+    <div class="script-card"><div class="sc-hdr diag">1</div><div class="sc-body">"I think this patient has atrial fibrillation."</div></div>
+    <div class="script-card"><div class="sc-hdr pos">2</div><div class="sc-body">"The positive signs are: an irregularly irregular pulse at [X] bpm, an absent a-wave in the JVP, and a varying S1 intensity on auscultation. The ventricular rate appears [controlled / uncontrolled]."<div class="sc-note">Then comment on the likely underlying cause based on other examination findings.</div></div></div>
+    <div class="script-card"><div class="sc-hdr neg">3</div><div class="sc-body">"Important negatives: no IE stigmata. [AF confirmed]. No LVF. No RVF. No pulmonary hypertension."</div></div>
+    <div class="script-card"><div class="sc-hdr inc">4</div><div class="sc-body">"The most likely underlying aetiology is [hypertension / thyrotoxicosis / mitral valve disease / ischaemic / idiopathic]."</div></div>
+  </div></div>
+  <div class="section"><div class="sec-hdr" onclick="tog(this)"><span class="sec-icon">🎓</span><span class="sec-title">Examiner questions</span><span class="sec-arrow">▶</span></div><div class="sec-body">
+    <div class="qa-item"><div class="qa-q">Causes of AF?</div><div class="qa-a">Cardiac: hypertension (most common), IHD, mitral valve disease, heart failure, cardiomyopathy. Non-cardiac: thyrotoxicosis, alcohol (holiday heart), PE, pneumonia, electrolyte disturbance. Lone AF (no cause, young).</div></div>
+    <div class="qa-item"><div class="qa-q">Stroke risk and anticoagulation?</div><div class="qa-a">CHA₂DS₂-VASc score. Anticoagulate if ≥2 (men) or ≥3 (women). DOACs preferred unless valvular AF (mechanical valve / MS) — use warfarin. Assess bleeding risk with HAS-BLED.</div></div>
+    <div class="qa-item"><div class="qa-q">Rate vs rhythm control?</div><div class="qa-a">Rate control for most — equivalent outcomes (AFFIRM trial). Rhythm control for: younger, symptomatic despite rate control, first presentation, clear precipitant. Always anticoagulate 3 weeks before cardioversion or TOE to exclude LA clot.</div></div>
+    <div class="qa-item"><div class="qa-q">CHA₂DS₂-VASc score?</div><div class="qa-a">CCF(1), Hypertension(1), Age≥75(2), Diabetes(1), Stroke/TIA(2), Vascular disease(1), Age 65–74(1), Sex female(1). Maximum 9.</div></div>
+  </div></div>
+</div>
+
+<!-- ==================== CASE 7: MVP ==================== -->
+<div class="case-page" id="case-7">
+  <div class="case-hdr">
+    <div class="eyebrow">Case 08 · 5.0%</div>
+    <h1>Mitral Valve Prolapse</h1>
+    <div class="badge-row">
+      <span class="badge badge-red">5.0%</span><span class="badge badge-blue">Station 3</span>
+      <span class="badge badge-amber">Stem: palpitations / incidental murmur</span>
+    </div>
+  </div>
+  <div class="spot-box"><div class="spot-label">⚡ Spot diagnosis</div><div class="spot-items">
+    <span class="spot-item">Mid-systolic click at apex</span><span class="spot-item">Late systolic murmur after click</span>
+    <span class="spot-item">Young, often female</span><span class="spot-item">Marfan's / pectus excavatum</span>
+    <span class="spot-item">Click moves earlier on standing</span>
+  </div></div>
+  <div class="section"><div class="sec-hdr" onclick="tog(this)"><span class="sec-icon">🔎</span><span class="sec-title">Full examination — findings</span><span class="sec-arrow open">▶</span></div><div class="sec-body open">
+    <div class="exam-step"><div class="step-n">1</div><div class="step-content"><div class="step-label">End of bed</div><div class="step-detail">Often young female. Marfan's (tall, long limbs, high-arched palate), Ehlers-Danlos (hypermobile joints, skin elasticity), pectus excavatum, straight back syndrome.</div></div></div>
+    <div class="exam-step"><div class="step-n">2</div><div class="step-content"><div class="step-label">Pulse / JVP</div><div class="step-detail">Usually regular. JVP normal.</div></div></div>
+    <div class="exam-step"><div class="step-n">3</div><div class="step-content"><div class="step-label">Precordium</div><div class="step-detail">Apex: normal position unless significant MR has developed. No heave or thrill typically.</div></div></div>
+    <div class="exam-step"><div class="step-n">4</div><div class="step-content"><div class="step-label">Auscultation — ★ Dynamic manoeuvres essential</div><div class="step-detail">
+      <span class="tag t-pos">Mid-systolic click</span> at apex — non-ejection, after S1. <span class="tag t-pos">Late systolic murmur</span> after click (MR from prolapsing leaflet).<br><br>
+      <strong>Standing from squatting:</strong> click moves <em>earlier</em>, murmur longer (smaller LV = earlier prolapse).<br>
+      <strong>Squatting:</strong> click moves <em>later</em>, murmur shorter (larger LV = later prolapse).<br>
+      <strong>Valsalva strain:</strong> click moves earlier (same mechanism as standing).<br><br>
+      If significant MR developed: PSM, displaced apex.
+    </div></div></div>
+  </div></div>
+  <div class="section"><div class="sec-hdr" onclick="tog(this)"><span class="sec-icon">💬</span><span class="sec-title">Presentation script</span><span class="sec-arrow open">▶</span></div><div class="sec-body open">
+    <div class="script-card"><div class="sc-hdr diag">1</div><div class="sc-body">"I think this patient has mitral valve prolapse."</div></div>
+    <div class="script-card"><div class="sc-hdr pos">2</div><div class="sc-body">"The positive signs are: a mid-systolic click at the apex followed by a late systolic murmur. On standing from squatting, the click moved earlier and the murmur lengthened — consistent with MVP. The apex is not displaced, suggesting no significant LV volume overload."<div class="sc-note">If Marfan's features: "There are features of Marfan's syndrome — the likely underlying aetiology."</div></div></div>
+    <div class="script-card"><div class="sc-hdr neg">3</div><div class="sc-body">"Important negatives: no IE stigmata. Sinus rhythm. No LVF or RVF. No pulmonary hypertension. No displaced apex to suggest significant MR has developed."</div></div>
+  </div></div>
+  <div class="section"><div class="sec-hdr" onclick="tog(this)"><span class="sec-icon">🎓</span><span class="sec-title">Examiner questions</span><span class="sec-arrow">▶</span></div><div class="sec-body">
+    <div class="qa-item"><div class="qa-q">Mechanism of the click?</div><div class="qa-a">As LV contracts, elongated chordae reach maximum tension and prolapsing leaflets billow into the LA — this tensioning creates the click. Smaller LV (standing) = earlier click.</div></div>
+    <div class="qa-item"><div class="qa-q">Complications of MVP?</div><div class="qa-a">Progressive MR (most important — can require surgery). IE. Arrhythmias. Cerebral emboli (rare). Chordal rupture (acute severe MR).</div></div>
+    <div class="qa-item"><div class="qa-q">Why does standing make the murmur longer?</div><div class="qa-a">Standing → ↓ venous return → smaller LV → earlier prolapse → click earlier → murmur occupies more of systole. Squatting has the opposite effect.</div></div>
+  </div></div>
+  <div class="section"><div class="sec-hdr" onclick="tog(this)"><span class="sec-icon">✗</span><span class="sec-title">Common pitfalls</span><span class="sec-arrow">▶</span></div><div class="sec-body">
+    <div class="pitfall">Not performing dynamic manoeuvres — MVP can be missed or mistaken without standing / Valsalva</div>
+    <div class="pitfall">Calling the click an ejection click — mid-systolic (after S1), not early systolic</div>
+    <div class="pitfall">Not commenting on whether significant MR has developed — displaced apex and S3 suggest this</div>
+  </div></div>
+</div>
+
+<!-- ==================== CASE 8: MIXED AV ==================== -->
+<div class="case-page" id="case-8">
+  <div class="case-hdr">
+    <div class="eyebrow">Case 09 · 4.9%</div>
+    <h1>Mixed Aortic Valve Disease</h1>
+    <div class="badge-row">
+      <span class="badge badge-red">4.9%</span><span class="badge badge-blue">Station 3</span>
+      <span class="badge badge-amber">Stem: dyspnoea / syncope</span>
+    </div>
+  </div>
+  <div class="spot-box"><div class="spot-label">⚡ Spot diagnosis</div><div class="spot-items">
+    <span class="spot-item">ESM + EDM at aortic area</span><span class="spot-item">Bisferiens pulse (double-peaked)</span>
+    <span class="spot-item">Features of both AS and AR</span><span class="spot-item">Must determine dominant lesion</span>
+  </div></div>
+  <div class="section"><div class="sec-hdr" onclick="tog(this)"><span class="sec-icon">🔎</span><span class="sec-title">Full examination — findings</span><span class="sec-arrow open">▶</span></div><div class="sec-body open">
+    <div class="exam-step"><div class="step-n">1</div><div class="step-content"><div class="step-label">Pulse</div><div class="step-detail"><span class="tag t-pos">Bisferiens pulse</span> — double-peaked, best felt at carotid. Pathognomonic of mixed aortic valve disease. Volume and character depend on dominant lesion.</div></div></div>
+    <div class="exam-step"><div class="step-n">2</div><div class="step-content"><div class="step-label">Apex character</div><div class="step-detail">Displaced + thrusting = AR dominant (volume-loaded). Heaving + non-displaced = AS dominant (pressure-loaded). Both features if truly mixed.</div></div></div>
+    <div class="exam-step"><div class="step-n">3</div><div class="step-content"><div class="step-label">Auscultation</div><div class="step-detail"><span class="tag t-pos">ESM at aortic area</span> (AS component). <span class="tag t-pos">EDM at lower LSE, lean forward + expiration</span> (AR component). Determine dominant by pulse character, pulse pressure, apex character.</div></div></div>
+    <div class="exam-step"><div class="step-n">4</div><div class="step-content"><div class="step-label">BP</div><div class="step-detail">Wide pulse pressure = AR dominant. Narrow = AS dominant.</div></div></div>
+  </div></div>
+  <div class="section"><div class="sec-hdr" onclick="tog(this)"><span class="sec-icon">💬</span><span class="sec-title">Presentation script</span><span class="sec-arrow open">▶</span></div><div class="sec-body open">
+    <div class="script-card"><div class="sc-hdr diag">1</div><div class="sc-body">"I think this patient has mixed aortic valve disease, with both stenotic and regurgitant components."</div></div>
+    <div class="script-card"><div class="sc-hdr pos">2</div><div class="sc-body">"The positive signs are: a bisferiens pulse at the carotid, a [displaced thrusting / heaving non-displaced] apex, an ejection systolic murmur at the aortic area radiating to the carotids, and an early diastolic murmur at the lower left sternal edge. The pulse pressure is [wide / narrow] and the apex character suggests the [AR / AS] component is dominant."</div></div>
+    <div class="script-card"><div class="sc-hdr neg">3</div><div class="sc-body">"Important negatives: no IE stigmata. [Rhythm]. No LVF. No RVF. No pulmonary hypertension."</div></div>
+  </div></div>
+  <div class="section"><div class="sec-hdr" onclick="tog(this)"><span class="sec-icon">🎓</span><span class="sec-title">Examiner questions</span><span class="sec-arrow">▶</span></div><div class="sec-body">
+    <div class="qa-item"><div class="qa-q">How do you determine the dominant lesion?</div><div class="qa-a">Pulse: slow-rising = AS dominant; collapsing = AR dominant. Pulse pressure: narrow = AS; wide = AR. Apex: heaving non-displaced = AS; displaced thrusting = AR. Echo gradient and valve area is definitive.</div></div>
+    <div class="qa-item"><div class="qa-q">Why is mixed disease significant?</div><div class="qa-a">Combined pressure + volume loading accelerates LV dysfunction. Intervention thresholds are lower than for isolated lesions. Bicuspid aortic valve is a common cause.</div></div>
+  </div></div>
+</div>
+
+<!-- ==================== CASE 9: VSD ==================== -->
+<div class="case-page" id="case-9">
+  <div class="case-hdr">
+    <div class="eyebrow">Case 10 · 4.3%</div>
+    <h1>Ventricular Septal Defect</h1>
+    <div class="badge-row">
+      <span class="badge badge-red">4.3%</span><span class="badge badge-blue">Station 3</span>
+      <span class="badge badge-amber">Stem: incidental murmur / dyspnoea</span>
+    </div>
+  </div>
+  <div class="spot-box"><div class="spot-label">⚡ Spot diagnosis</div><div class="spot-items">
+    <span class="spot-item">Harsh PSM at lower LSE</span><span class="spot-item">Palpable systolic thrill</span>
+    <span class="spot-item">No axillary radiation (vs MR)</span><span class="spot-item">Sternotomy scar if repaired</span>
+    <span class="spot-item">Small VSD = loud murmur (maladie de Roger)</span><span class="spot-item">Check for cyanosis (Eisenmenger's)</span>
+  </div></div>
+  <div class="section"><div class="sec-hdr" onclick="tog(this)"><span class="sec-icon">🔎</span><span class="sec-title">Full examination — findings</span><span class="sec-arrow open">▶</span></div><div class="sec-body open">
+    <div class="exam-step"><div class="step-n">1</div><div class="step-content"><div class="step-label">End of bed</div><div class="step-detail">Check for cyanosis (Eisenmenger's — right-to-left shunt). Clubbing if Eisenmenger's. Sternotomy / lateral scar if repaired. Down's syndrome association.</div></div></div>
+    <div class="exam-step"><div class="step-n">2</div><div class="step-content"><div class="step-label">Pulse / JVP</div><div class="step-detail">Usually normal. JVP raised if Eisenmenger's / right heart failure. Giant a-waves if pulmonary HTN.</div></div></div>
+    <div class="exam-step"><div class="step-n">3</div><div class="step-content"><div class="step-label">Precordium</div><div class="step-detail">Parasternal heave (RVH from pulmonary HTN / large shunt). <span class="tag t-pos">Systolic thrill at lower LSE</span>. Apex displaced if large left-to-right shunt (LV volume overload).</div></div></div>
+    <div class="exam-step"><div class="step-n">4</div><div class="step-content"><div class="step-label">Auscultation — MITRAL FIRST</div><div class="step-detail">
+      <span class="tag t-pos">Harsh PSM at lower LSE</span> — loud, no axillary radiation (key distinction from MR). Palpable thrill. <span class="tag t-pos">Loud P2</span> = pulmonary HTN.<br><br>
+      <span class="tag t-warn">If Eisenmenger's:</span> <span class="tag t-neg">murmur may disappear</span> as shunt reverses — cyanosis develops, RV heave prominent.
+    </div></div></div>
+  </div></div>
+  <div class="section"><div class="sec-hdr" onclick="tog(this)"><span class="sec-icon">💬</span><span class="sec-title">Presentation script</span><span class="sec-arrow open">▶</span></div><div class="sec-body open">
+    <div class="script-card"><div class="sc-hdr diag">1</div><div class="sc-body">"I think this patient has a ventricular septal defect."</div></div>
+    <div class="script-card"><div class="sc-hdr pos">2</div><div class="sc-body">"The positive signs are: a harsh pansystolic murmur at the lower left sternal edge with a palpable systolic thrill, and no radiation to the axilla."<div class="sc-note">If large: "There is also a parasternal heave and an accentuated P2 suggesting pulmonary hypertension from a significant left-to-right shunt."</div></div></div>
+    <div class="script-card"><div class="sc-hdr neg">3</div><div class="sc-body">"Important negatives: no IE stigmata. Sinus rhythm. No LVF. No RVF. No cyanosis — no evidence of Eisenmenger's syndrome. No pulmonary hypertension."</div></div>
+  </div></div>
+  <div class="section"><div class="sec-hdr" onclick="tog(this)"><span class="sec-icon">🎓</span><span class="sec-title">Examiner questions</span><span class="sec-arrow">▶</span></div><div class="sec-body">
+    <div class="qa-item"><div class="qa-q">What is Eisenmenger's syndrome?</div><div class="qa-a">Reversal of left-to-right shunt due to progressive pulmonary HTN. As pulmonary vascular resistance exceeds systemic, flow reverses (right-to-left) → cyanosis, clubbing. Murmur diminishes. Surgical correction then contraindicated — the shunt is maintaining cardiac output.</div></div>
+    <div class="qa-item"><div class="qa-q">Why does a small VSD have a louder murmur?</div><div class="qa-a">Maladie de Roger — a small restrictive VSD maintains a high LV-to-RV pressure gradient → high-velocity turbulent flow → loud murmur. Large VSD equalises pressures → quieter murmur.</div></div>
+    <div class="qa-item"><div class="qa-q">When do you close a VSD?</div><div class="qa-a">Large VSD with Qp:Qs >1.5:1, LV volume overload, pulmonary HTN before Eisenmenger's. Small VSDs often close spontaneously in childhood. Closure contraindicated in established Eisenmenger's.</div></div>
+  </div></div>
+  <div class="section"><div class="sec-hdr" onclick="tog(this)"><span class="sec-icon">✗</span><span class="sec-title">Common pitfalls</span><span class="sec-arrow">▶</span></div><div class="sec-body">
+    <div class="pitfall">Confusing VSD with MR — VSD has no axillary radiation and thrill at lower LSE, not apex</div>
+    <div class="pitfall">Not checking for cyanosis — Eisenmenger's changes management completely</div>
+    <div class="pitfall">Not checking P2 — pulmonary HTN from a large shunt is a key finding</div>
+    <div class="pitfall">Expecting a loud murmur to mean less severe — a small VSD is louder than a large one</div>
+  </div></div>
+</div>
+
+</main>
+
+<script>
+function show(n) {
+  document.querySelectorAll('.case-page').forEach((p,i) => p.classList.toggle('active', i===n));
+  document.querySelectorAll('.case-btn').forEach((b,i) => b.classList.toggle('active', i===n));
+  document.getElementById('mainContent').scrollTop = 0;
+}
+function tog(hdr) {
+  const body = hdr.nextElementSibling;
+  const arrow = hdr.querySelector('.sec-arrow');
+  const isOpen = body.classList.contains('open');
+  body.classList.toggle('open', !isOpen);
+  arrow.classList.toggle('open', !isOpen);
+}
+</script>
+</body>
+</html>
