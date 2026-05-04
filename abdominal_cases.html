@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Abdominal Cases — PACES</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0e0f11;--surface:#16181c;--surface2:#1d2026;--border:#2a2d35;--text:#e8e9ec;--text2:#8b8f9a;--text3:#5a5e6b;--accent:#4a9eff;--accent-dim:#1a3a5c;--green:#4caf7d;--green-dim:#1a3328;--red:#e05c5c;--red-dim:#3a1f1f;--amber:#f0a040;--amber-dim:#3a2a10;--mono:'IBM Plex Mono',monospace;--serif:'Instrument Serif',serif;--sans:'DM Sans',sans-serif}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}html{font-size:15px}body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;display:flex}
+.sidebar{width:260px;min-width:260px;background:var(--surface);border-right:1px solid var(--border);display:flex;flex-direction:column;height:100vh;position:sticky;top:0;overflow-y:auto}
+.sidebar-hdr{padding:20px 18px 14px;border-bottom:1px solid var(--border)}.sidebar-hdr .eyebrow{font-family:var(--mono);font-size:9px;color:var(--text3);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:5px}.sidebar-hdr .main-title{font-family:var(--serif);font-size:19px;color:var(--text);font-style:italic}.sidebar-hdr .sub{font-size:11px;color:var(--text3);margin-top:4px}
+.back-link{display:flex;align-items:center;gap:6px;padding:10px 18px;font-family:var(--mono);font-size:10px;color:var(--text3);text-decoration:none;border-bottom:1px solid var(--border);transition:color .15s}.back-link:hover{color:var(--accent)}
+.case-nav{flex:1;padding:10px 0}.case-btn{display:flex;align-items:center;gap:10px;width:100%;padding:9px 18px;background:none;border:none;cursor:pointer;text-align:left;transition:background .15s;border-left:3px solid transparent}.case-btn:hover{background:var(--surface2)}.case-btn.active{background:var(--accent-dim);border-left-color:var(--accent)}.case-btn .num{font-family:var(--mono);font-size:9px;color:var(--text3);min-width:18px}.case-btn.active .num{color:var(--accent)}.case-btn .name{font-size:12px;color:var(--text2);line-height:1.3;flex:1}.case-btn.active .name{color:var(--text);font-weight:500}.case-btn .freq{font-family:var(--mono);font-size:10px;color:var(--text3)}.case-btn.active .freq{color:var(--accent)}
+.main{flex:1;overflow-y:auto;padding:32px 40px 60px;max-width:820px}.case-page{display:none}.case-page.active{display:block}
+.case-hdr{margin-bottom:24px;padding-bottom:20px;border-bottom:1px solid var(--border)}.case-hdr .eyebrow{font-family:var(--mono);font-size:10px;color:var(--accent);letter-spacing:1px;text-transform:uppercase;margin-bottom:8px}.case-hdr h1{font-family:var(--serif);font-size:32px;font-weight:400;color:var(--text);font-style:italic;margin-bottom:12px}
+.badge-row{display:flex;flex-wrap:wrap;gap:6px}.badge{display:inline-block;font-family:var(--mono);font-size:10px;padding:3px 10px;border-radius:3px;font-weight:500}.badge-red{background:var(--red-dim);color:var(--red)}.badge-blue{background:var(--accent-dim);color:var(--accent)}.badge-amber{background:var(--amber-dim);color:var(--amber)}
+.spot-box{background:var(--accent-dim);border:1px solid #1e4a80;border-radius:8px;padding:14px 16px;margin-bottom:24px}.spot-box .spot-label{font-family:var(--mono);font-size:9px;color:var(--accent);letter-spacing:1px;text-transform:uppercase;margin-bottom:10px}.spot-items{display:flex;flex-wrap:wrap;gap:6px}.spot-item{background:rgba(74,158,255,.1);border:1px solid rgba(74,158,255,.25);border-radius:4px;font-size:12px;color:#a0c8ff;padding:4px 10px}
+.section{margin-bottom:14px;border:1px solid var(--border);border-radius:8px;overflow:hidden}.sec-hdr{display:flex;align-items:center;gap:10px;padding:11px 16px;cursor:pointer;background:var(--surface);transition:background .15s;user-select:none}.sec-hdr:hover{background:var(--surface2)}.sec-icon{font-size:14px}.sec-title{font-size:13px;font-weight:500;color:var(--text);flex:1}.sec-arrow{font-family:var(--mono);font-size:11px;color:var(--text3);transition:transform .2s}.sec-arrow.open{transform:rotate(90deg)}.sec-body{border-top:1px solid var(--border);padding:16px;display:none;background:var(--bg)}.sec-body.open{display:block}
+.exam-step{display:flex;gap:12px;margin-bottom:12px}.exam-step:last-child{margin-bottom:0}.step-n{min-width:22px;height:22px;border-radius:50%;background:var(--accent-dim);color:var(--accent);font-family:var(--mono);font-size:10px;font-weight:500;display:flex;align-items:center;justify-content:center;margin-top:1px;flex-shrink:0}.step-content .step-label{font-size:13px;font-weight:500;color:var(--text);margin-bottom:4px}.step-content .step-detail{font-size:12px;color:var(--text2);line-height:1.65}
+.tag{display:inline-block;font-size:10px;font-family:var(--mono);padding:1px 7px;border-radius:3px;margin:1px 2px 1px 0;vertical-align:baseline}.t-pos{background:var(--green-dim);color:var(--green)}.t-neg{background:var(--red-dim);color:var(--red)}.t-warn{background:var(--amber-dim);color:var(--amber)}.t-neutral{background:var(--surface2);color:var(--text2)}
+.script-card{border:1px solid var(--border);border-radius:6px;overflow:hidden;margin-bottom:10px}.script-card:last-child{margin-bottom:0}.sc-hdr{padding:6px 12px;font-family:var(--mono);font-size:9px;letter-spacing:1px;text-transform:uppercase;font-weight:500}.sc-hdr.diag{background:var(--accent-dim);color:var(--accent)}.sc-hdr.pos{background:var(--green-dim);color:var(--green)}.sc-hdr.neg{background:var(--red-dim);color:var(--red)}.sc-hdr.inc{background:var(--surface2);color:var(--text2)}.sc-body{padding:12px 14px;font-family:var(--serif);font-size:14px;font-style:italic;color:var(--text);line-height:1.75;background:var(--surface)}.sc-note{font-family:var(--sans);font-size:11px;font-style:normal;color:var(--text2);background:var(--surface2);border-top:1px solid var(--border);padding:8px 14px;line-height:1.5}
+.diff-row{display:flex;gap:12px;padding:7px 0;border-bottom:1px solid var(--border);font-size:12px}.diff-row:last-child{border-bottom:none}.diff-dx{font-weight:500;color:var(--text);min-width:210px}.diff-detail{color:var(--text2)}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:12px}.mini-card{background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:12px 14px}.mini-card .mini-title{font-family:var(--mono);font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px}.mini-card .mi{font-size:12px;color:var(--text2);padding:2px 0;line-height:1.5}.mini-card .mi::before{content:"—";color:var(--text3);margin-right:6px;font-family:var(--mono)}
+.qa-item{margin-bottom:14px}.qa-item:last-child{margin-bottom:0}.qa-q{font-size:12px;font-weight:500;color:var(--accent);margin-bottom:5px;padding-left:20px;position:relative}.qa-q::before{content:"Q";position:absolute;left:0;font-family:var(--mono);font-size:10px;background:var(--accent-dim);color:var(--accent);width:14px;height:14px;border-radius:2px;display:flex;align-items:center;justify-content:center;top:1px}.qa-a{font-size:12px;color:var(--text2);line-height:1.65;padding-left:20px}
+.pitfall{display:flex;gap:10px;margin-bottom:8px;font-size:12px;color:var(--text2);line-height:1.6}.pitfall:last-child{margin-bottom:0}.pitfall::before{content:"!";min-width:18px;height:18px;border-radius:3px;background:var(--amber-dim);color:var(--amber);font-family:var(--mono);font-size:10px;font-weight:600;display:flex;align-items:center;justify-content:center;margin-top:1px;flex-shrink:0}
+.gen-table{width:100%;border-collapse:collapse;font-size:12px}.gen-table th{text-align:left;padding:6px 12px;background:var(--surface2);color:var(--text2);font-family:var(--mono);font-size:9px;text-transform:uppercase;letter-spacing:1px;font-weight:500}.gen-table td{padding:7px 12px;border-top:1px solid var(--border);color:var(--text2);line-height:1.5}.gen-table td:first-child{color:var(--text);font-weight:500}
+.warn-box{background:var(--amber-dim);border:1px solid rgba(240,160,64,.3);border-radius:6px;padding:10px 14px;font-size:12px;color:var(--amber);margin-top:12px}.warn-box::before{content:"⚠ "}
+.info-box{background:var(--accent-dim);border:1px solid rgba(74,158,255,.3);border-radius:6px;padding:10px 14px;font-size:12px;color:#a0c8ff;margin-top:12px}
+.sub-label{font-family:var(--mono);font-size:9px;color:var(--text3);text-transform:uppercase;letter-spacing:1px;margin:14px 0 8px}
+</style>
+</head>
+<body>
+<aside class="sidebar">
+  <div class="sidebar-hdr">
+    <div class="eyebrow">PACES · Station 4</div>
+    <div class="main-title">Abdominal</div>
+    <div class="sub">10 cases · 88% of appearances</div>
+  </div>
+  <a class="back-link" href="index.html">← Back to hub</a>
+  <nav class="case-nav">
+    <button class="case-btn active" onclick="show(0)"><span class="num">01</span><span class="name">Transplanted Kidney</span><span class="freq">20.3%</span></button>
+    <button class="case-btn" onclick="show(1)"><span class="num">02</span><span class="name">Chronic Liver Disease</span><span class="freq">11.1%</span></button>
+    <button class="case-btn" onclick="show(2)"><span class="num">03</span><span class="name">Hepatosplenomegaly</span><span class="freq">8.9%</span></button>
+    <button class="case-btn" onclick="show(3)"><span class="num">04</span><span class="name">Hepatomegaly</span><span class="freq">8.5%</span></button>
+    <button class="case-btn" onclick="show(4)"><span class="num">05</span><span class="name">Splenomegaly</span><span class="freq">8.2%</span></button>
+    <button class="case-btn" onclick="show(5)"><span class="num">06</span><span class="name">Transplanted Liver</span><span class="freq">7.0%</span></button>
+    <button class="case-btn" onclick="show(6)"><span class="num">07</span><span class="name">ADPKD</span><span class="freq">6.7%</span></button>
+    <button class="case-btn" onclick="show(7)"><span class="num">08</span><span class="name">Ascites</span><span class="freq">6.3%</span></button>
+    <button class="case-btn" onclick="show(8)"><span class="num">09</span><span class="name">IBD</span><span class="freq">5.9%</span></button>
+    <button class="case-btn" onclick="show(9)"><span class="num">10</span><span class="name">Abdominal Mass</span><span class="freq">5.5%</span></button>
+  </nav>
+</aside>
+<main class="main" id="mainContent">
+
+<!-- CASE 0: TRANSPLANTED KIDNEY -->
+<div class="case-page active" id="case-0">
+  <div class="case-hdr"><div class="eyebrow">Case 01 · Most Common · 20.3%</div><h1>Transplanted Kidney</h1>
+  <div class="badge-row"><span class="badge badge-red">20.3%</span><span class="badge badge-blue">Station 4</span><span class="badge badge-amber">Stem: hypertension / renal investigation</span></div></div>
+  <div class="spot-box"><div class="spot-label">⚡ Spot diagnosis</div><div class="spot-items">
+    <span class="spot-item">Iliac fossa scar (R or L)</span><span class="spot-item">Palpable kidney in iliac fossa</span>
+    <span class="spot-item">AV fistula — active or scarred</span><span class="spot-item">Cushingoid</span>
+    <span class="spot-item">Tunnelled line scars</span><span class="spot-item">Gum hypertrophy (ciclosporin)</span>
+  </div></div>
+  <div class="section"><div class="sec-hdr" onclick="tog(this)"><span class="sec-icon">🔎</span><span class="sec-title">Full examination — findings</span><span class="sec-arrow open">▶</span></div><div class="sec-body open">
+    <div class="exam-step"><div class="step-n">1</div><div class="step-content"><div class="step-label">End of bed</div><div class="step-detail">Cushingoid. Tremor (tacrolimus). Pallor (anaemia of CKD). BP cuff. Fluid status assessment.</div></div></div>
+    <div class="exam-step"><div class="step-n">2</div><div class="step-content"><div class="step-label">Arms — RRT status ★</div><div class="step-detail">
+      <strong>Active:</strong> <span class="tag t-pos">Working AV fistula</span> — thrill on palpation, bruit on auscultation. Tunnelled dialysis line. PD catheter (abdomen).<br>
+      <strong>Inactive:</strong> <span class="tag t-neutral">Scarred non-functioning fistula</span> — no thrill, no bruit. Old line scars. Old PD catheter scars.<br>
+      <span class="tag t-warn">Functioning transplant = usually no active dialysis access in current use.</span>
+    </div></div></div>
+    <div class="exam-step"><div class="step-n">3</div><div class="step-content"><div class="step-label">Face / mouth</div><div class="step-detail">Pallor. Cushingoid. <span class="tag t-pos">Gum hypertrophy</span> (ciclosporin). Viral warts. Hirsutism (ciclosporin).</div></div></div>
+    <div class="exam-step"><div class="step-n">4</div><div class="step-content"><div class="step-label">Cause of renal failure ★</div><div class="step-detail">
+      <span class="tag t-pos">ADPKD:</span> bilateral flank masses, hepatic cysts<br>
+      <span class="tag t-pos">Diabetes:</span> fingerprick marks, injection sites, pump<br>
+      <span class="tag t-pos">Systemic sclerosis:</span> sclerodactyly, beaked nose, telangiectasia<br>
+      <span class="tag t-pos">RA:</span> ulnar deviation, nodules, MCP swelling<br>
+      <span class="tag t-pos">Amyloid:</span> hepatosplenomegaly, macroglossia<br>
+      <span class="tag t-pos">Tuberous sclerosis:</span> adenoma sebaceum, ungual fibromas
+    </div></div></div>
+    <div class="exam-step"><div class="step-n">5</div><div class="step-content"><div class="step-label">Abdomen</div><div class="step-detail"><span class="tag t-pos">Iliac fossa scar</span>. Flank scar (nephrectomy). PD catheter scars. Midline scar (pancreas-kidney transplant). <span class="tag t-pos">Palpable transplant kidney</span> — assess tenderness.</div></div></div>
+    <div class="exam-step"><div class="step-n">6</div><div class="step-content"><div class="step-label">Fluid status ★</div><div class="step-detail">
+      <span class="tag t-warn">Overloaded:</span> raised JVP, pitting oedema, crackles, hypertension<br>
+      <span class="tag t-pos">Euvolaemic:</span> no oedema, JVP normal<br>
+      <span class="tag t-neg">Fluid-deplete:</span> low JVP, dry mucous membranes, postural hypotension<br>
+      Both overload and depletion harm the graft.
+    </div></div></div>
+    <div class="exam-step"><div class="step-n">7</div><div class="step-content"><div class="step-label">Completions</div><div class="step-detail">Dip urine. Varicocele (males). Skin malignancy (SCC ×100). BP both arms. Fundoscopy.</div></div></div>
+  </div></div>
+  <div class="section"><div class="sec-hdr" onclick="tog(this)"><span class="sec-icon">💬</span><span class="sec-title">Presentation script</span><span class="sec-arrow open">▶</span></div><div class="sec-body open">
+    <div class="script-card"><div class="sc-hdr diag">1</div><div class="sc-body">"I think this patient has a renal transplant."</div></div>
+    <div class="script-card"><div class="sc-hdr pos">2</div><div class="sc-body">"The positive signs are: an iliac fossa scar on the [right/left], [with/without] a palpable transplant kidney, and [Cushingoid features / gum hypertrophy / tremor] from immunosuppressive therapy. The likely cause of renal failure is [ADPKD / diabetic nephropathy / systemic sclerosis]."</div></div>
+    <div class="script-card"><div class="sc-hdr neg">3 — Renal fixed safety screen</div><div class="sc-body">"Regarding fluid status: the patient appears [euvolaemic — JVP not raised, no oedema / overloaded — raised JVP and pitting oedema / fluid-deplete — low JVP and dry mucous membranes].<br><br>Regarding renal replacement therapy: there is [a working AV fistula with a thrill — active haemodialysis / no active dialysis access — consistent with a functioning transplant]. There are [no / scarred non-functioning] previous fistulae.<br><br>Regarding cause: [as described above / no specific signs to identify the aetiology on this examination].<br><br>Regarding complications: there are [Cushingoid features / gum hypertrophy from ciclosporin / tremor from tacrolimus]. BP is [X/Y]. There is [no evidence of / evidence of] skin malignancy."</div></div>
+    <div class="script-card"><div class="sc-hdr inc">4</div><div class="sc-body">"To complete I would dip the urine and examine the fundoscopy."</div></div>
+  </div></div>
+  <div class="section"><div class="sec-hdr" onclick="tog(this)"><span class="sec-icon">📊</span><span class="sec-title">Three-point renal framework</span><span class="sec-arrow">▶</span></div><div class="sec-body">
+    <table class="gen-table">
+      <tr><th>Point</th><th>Assess</th><th>Look for</th></tr>
+      <tr><td>1. Cause</td><td>Why did they fail?</td><td>ADPKD, diabetes, GN, systemic sclerosis, RA, amyloid, tuberous sclerosis</td></tr>
+      <tr><td>2. Treatment</td><td>Current modality</td><td>Working fistula (HD), PD catheter, transplant — still on dialysis?</td></tr>
+      <tr><td>3. Complications</td><td>Disease + treatment</td><td>Fluid status, BP, anaemia, immunosuppression stigmata, skin malignancy, CVD</td></tr>
+    </table>
+    <div class="warn-box">Kidney-pancreas transplant: lower midline incision + kidney in iliac fossa without overlying scar. Consider in younger T1DM patient.</div>
+  </div></div>
+  <div class="section"><div class="sec-hdr" onclick="tog(this)"><span class="sec-icon">🔬</span><span class="sec-title">Investigations</span><span class="sec-arrow">▶</span></div><div class="sec-body">
+    <div class="two-col">
+      <div class="mini-card"><div class="mini-title">Investigations</div>
+        <div class="mi">U&amp;E, creatinine — graft function trend</div>
+        <div class="mi">FBC — anaemia, immunosuppression effects</div>
+        <div class="mi">CNI levels (tacrolimus / ciclosporin) — toxicity</div>
+        <div class="mi">Urine dip + PCR — proteinuria, haematuria</div>
+        <div class="mi">Renal USS + Doppler — perfusion, obstruction</div>
+        <div class="mi">Renal biopsy — gold standard for rejection</div>
+        <div class="mi">CMV/EBV PCR — opportunistic infection</div>
+      </div>
+      <div class="mini-card"><div class="mini-title">Key facts</div>
+        <div class="mi">Top 3 causes: GN, diabetic nephropathy, ADPKD</div>
+        <div class="mi">Graft survival: 90% at 1yr, ~50% at 10yr</div>
+        <div class="mi">Live donor = better outcomes than cadaveric</div>
+        <div class="mi">Triple IS: CNI + antiproliferative + steroid</div>
+        <div class="mi">SCC ×100, BCC ×10 post-transplant</div>
+        <div class="mi">PTLD — EBV-driven B-cell proliferation</div>
+        <div class="mi">Recurrence of original disease possible in graft</div>
+      </div>
+    </div>
+  </div></div>
+  <div class="section"><div class="sec-hdr" onclick="tog(this)"><span class="sec-icon">🎓</span><span class="sec-title">Examiner questions</span><span class="sec-arrow">▶</span></div><div class="sec-body">
+    <div class="qa-item"><div class="qa-q">What are the top three causes of renal transplantation?</div><div class="qa-a">Glomerulonephritis (most common overall), diabetic nephropathy (most common in older patients, rising in frequency), and ADPKD. Other causes include hypertensive nephropathy, systemic sclerosis, RA, and amyloidosis.</div></div>
+    <div class="qa-item"><div class="qa-q">How do you distinguish acute from chronic rejection?</div><div class="qa-a">Acute rejection (weeks to months): rising creatinine, graft tenderness, fever, oliguria. Treat with IV methylprednisolone; resistant cases need anti-thymocyte globulin. Chronic rejection: gradual creatinine rise over months to years, proteinuria, hypertension — chronic alloimmune injury. Limited treatment; eventual graft failure.</div></div>
+    <div class="qa-item"><div class="qa-q">What are the side effects of the main immunosuppressants?</div><div class="qa-a">Tacrolimus: nephrotoxicity, fine tremor, hypertension, diabetes. Ciclosporin: nephrotoxicity, gum hypertrophy, hirsutism, hypertension. Mycophenolate: GI upset, myelosuppression. Azathioprine: myelosuppression, hepatotoxicity. Prednisolone: Cushingoid, osteoporosis, diabetes, hypertension, cataracts.</div></div>
+    <div class="qa-item"><div class="qa-q">Why is the AV fistula preferred over other HD access?</div><div class="qa-a">Native AV fistula (radiocephalic at wrist or brachiocephalic at elbow) has lowest infection risk, longest patency, and highest flow rates. Tunnelled central venous catheters have highest infection risk. "Fistula first" — creation should precede need by months to allow maturation.</div></div>
+    <div class="qa-item"><div class="qa-q">What skin malignancies are increased after transplant and why?</div><div class="qa-a">SCC ×100, BCC ×10 — unlike general population where BCC &gt; SCC, transplant patients have SCC predominance with more aggressive behaviour. Caused by impaired immune surveillance of UV-induced DNA damage. Annual dermatology review, sun protection advice, prompt treatment of actinic keratoses.</div></div>
+    <div class="qa-item"><div class="qa-q">How do you assess fluid status in a transplant patient and why does it matter?</div><div class="qa-a">JVP, peripheral oedema, BP, skin turgor, mucous membranes. Overload: hypertension and graft strain. Depletion: pre-renal insult triggering rejection or ATN. Optimal euvolaemia is critical — especially early post-transplant.</div></div>
+    <div class="qa-item"><div class="qa-q">What is PTLD?</div><div class="qa-a">Post-transplant lymphoproliferative disease — EBV-driven B-cell proliferation in impaired T-cell immunosurveillance. Ranges from benign polyclonal to aggressive monomorphic lymphoma. Presents with lymphadenopathy, fever, weight loss, organ infiltration. Treatment: reduce immunosuppression ± rituximab ± chemotherapy.</div></div>
+    <div class="qa-item"><div class="qa-q">What is the significance of gum hypertrophy?</div><div class="qa-a">Indicates ciclosporin use. Also caused by phenytoin, nifedipine, and pregnancy. In transplant patients, alerts to ciclosporin nephrotoxicity as a cause of declining graft function — ciclosporin levels must always be monitored alongside this finding.</div></div>
+  </div></div>
+  <div class="section"><div class="sec-hdr" onclick="tog(this)"><span class="sec-icon">✗</span><span class="sec-title">Common pitfalls</span><span class="sec-arrow">▶</span></div><div class="sec-body">
+    <div class="pitfall">Not applying the three-point framework — cause, treatment modality, complications</div>
+    <div class="pitfall">Not assessing fluid status — always state euvolaemic / overloaded / deplete</div>
+    <div class="pitfall">Not distinguishing active from inactive dialysis access</div>
+    <div class="pitfall">Missing the kidney-pancreas transplant — lower midline scar + iliac fossa kidney without overlying scar</div>
+    <div class="pitfall">Not identifying the cause — ADPKD, diabetes, RA, systemic sclerosis all have examination signs</div>
+    <div class="pitfall">Forgetting urine dip as a completion</div>
+  </div></div>
+</div>
+
+<!-- CASE 1: CLD -->
+<div class="case-page" id="case-1">
+  <div class="case-hdr"><div class="eyebrow">Case 02 · 11.1%</div><h1>Chronic Liver Disease</h1>
+  <div class="badge-row"><span class="badge badge-red">11.1%</span><span class="badge badge-blue">Station 4</span><span class="badge badge-amber">Stem: abdominal distension / jaundice / fatigue</span></div></div>
+  <div class="spot-box"><div class="spot-label">⚡ Spot diagnosis</div><div class="spot-items">
+    <span class="spot-item">Spider naevi (&gt;5 = significant)</span><span class="spot-item">Palmar erythema</span>
+    <span class="spot-item">Leukonychia / Terry's nails</span><span class="spot-item">Jaundice</span>
+    <span class="spot-item">Hepatomegaly or shrunken liver</span><span class="spot-item">Splenomegaly (portal HTN)</span>
+  </div></div>
+  <div class="section"><div class="sec-hdr" onclick="tog(this)"><span class="sec-icon">🔎</span><span class="sec-title">Full examination — findings</span><span class="sec-arrow open">▶</span></div><div class="sec-body open">
+    <div class="exam-step"><div class="step-n">1</div><div class="step-content"><div class="step-label">End of bed</div><div class="step-detail">Cachexia, muscle wasting. Jaundice. Ascites. Encephalopathy. Fetor hepaticus. Alcohol: parotid swelling, Dupuytren's, bruising.</div></div></div>
+    <div class="exam-step"><div class="step-n">2</div><div class="step-content"><div class="step-label">Hands</div><div class="step-detail"><span class="tag t-pos">Leukonychia</span>. <span class="tag t-pos">Terry's nails</span>. <span class="tag t-pos">Palmar erythema</span>. Dupuytren's (alcohol). Clubbing (cirrhosis, HCC). Bruising (coagulopathy). <span class="tag t-warn">Asterixis</span> (hepatic encephalopathy).</div></div></div>
+    <div class="exam-step"><div class="step-n">3</div><div class="step-content"><div class="step-label">Arms / chest</div><div class="step-detail"><span class="tag t-pos">Spider naevi</span> — &gt;5 in SVC distribution = significant. Reduced body hair. Gynaecomastia + testicular atrophy (males). Bruising.</div></div></div>
+    <div class="exam-step"><div class="step-n">4</div><div class="step-content"><div class="step-label">Face / eyes — aetiology</div><div class="step-detail">Jaundice. Xanthelasma (PBC). Parotid swelling (alcohol). Kayser-Fleischer rings (Wilson's — slit lamp). Slate-grey pigmentation (haemochromatosis). Cushingoid (AIH on steroids).</div></div></div>
+    <div class="exam-step"><div class="step-n">5</div><div class="step-content"><div class="step-label">Abdomen</div><div class="step-detail"><span class="tag t-pos">Caput medusae</span>. <span class="tag t-pos">Hepatomegaly</span>. <span class="tag t-pos">Splenomegaly</span> (portal HTN). <span class="tag t-pos">Ascites</span> — shifting dullness. Biopsy scar. Drain site.</div></div></div>
+    <div class="exam-step"><div class="step-n">6</div><div class="step-content"><div class="step-label">Legs</div><div class="step-detail">Peripheral oedema. Reduced body hair. Tattoos/needle marks (hepatitis B/C). Peripheral neuropathy (alcohol). Scratch marks (pruritus — PBC).</div></div></div>
+  </div></div>
+  <div class="section"><div class="sec-hdr" onclick="tog(this)"><span class="sec-icon">💬</span><span class="sec-title">Presentation script</span><span class="sec-arrow open">▶</span></div><div class="sec-body open">
+    <div class="script-card"><div class="sc-hdr diag">1</div><div class="sc-body">"I think this patient has chronic liver disease."</div></div>
+    <div class="script-card"><div class="sc-hdr pos">2</div><div class="sc-body">"The positive signs are: leukonychia, palmar erythema, multiple spider naevi in the SVC distribution, and [hepatomegaly / splenomegaly suggesting portal hypertension]. The aetiology appears to be [alcohol — Dupuytren's, parotid swelling / viral hepatitis — tattoos, needle marks / PBC — xanthelasma, middle-aged woman / haemochromatosis — slate-grey pigmentation]."</div></div>
+    <div class="script-card"><div class="sc-hdr neg">3 — Liver safety screen</div><div class="sc-body">"Regarding decompensation: there is [no / confirmed] jaundice. There is [no ascites / ascites on shifting dullness]. There is [no asterixis / asterixis — hepatic encephalopathy]. There is [no / significant] bruising suggesting coagulopathy.<br><br>Regarding portal hypertension: there is [no / confirmed] splenomegaly and [no / confirmed] caput medusae.<br><br>Regarding nutritional status: the patient appears [well-nourished / cachectic with muscle wasting]."</div></div>
+    <div class="script-card"><div class="sc-hdr inc">4</div><div class="sc-body">"To complete I would request LFTs, clotting, albumin, USS abdomen, and a full liver screen."</div></div>
+  </div></div>
+  <div class="section"><div class="sec-hdr" onclick="tog(this)"><span class="sec-icon">📊</span><span class="sec-title">Child-Pugh classification</span><span class="sec-arrow">▶</span></div><div class="sec-body">
+    <table class="gen-table">
+      <tr><th>Variable</th><th>1 point</th><th>2 points</th><th>3 points</th></tr>
+      <tr><td>Bilirubin (µmol/L)</td><td>&lt;34</td><td>34–50</td><td>&gt;50</td></tr>
+      <tr><td>Albumin (g/L)</td><td>&gt;35</td><td>28–35</td><td>&lt;28</td></tr>
+      <tr><td>INR</td><td>&lt;1.7</td><td>1.7–2.3</td><td>&gt;2.3</td></tr>
+      <tr><td>Ascites</td><td>None</td><td>Mild</td><td>Moderate-severe</td></tr>
+      <tr><td>Encephalopathy</td><td>None</td><td>Grade 1–2</td><td>Grade 3–4</td></tr>
+    </table>
+    <div class="info-box">A (5–6): 100% 1yr survival. B (7–9): 81%. C (10–15): 45%. Guides transplant eligibility and surgical risk.</div>
+  </div></div>
+  <div class="section"><div class="sec-hdr" onclick="tog(this)"><span class="sec-icon">🎓</span><span class="sec-title">Examiner questions</span><span class="sec-arrow">▶</span></div><div class="sec-body">
+    <div class="qa-item"><div class="qa-q">What causes of CLD can you identify on examination?</div><div class="qa-a">Alcohol: Dupuytren's, parotid swelling, peripheral neuropathy, multiple bruises. Viral hepatitis B/C: tattoos, needle marks, nasal septal perforation. PBC: xanthelasma, middle-aged woman, scratch marks from pruritus. Haemochromatosis: slate-grey pigmentation, injection sites (diabetes), 2nd/3rd MCP arthropathy. Wilson's: Kayser-Fleischer rings (slit lamp), young patient, neurological signs. AIH: Cushingoid (on steroids), young-middle-aged woman.</div></div>
+    <div class="qa-item"><div class="qa-q">What are the signs of decompensation?</div><div class="qa-a">Jaundice (failing synthetic function). Ascites (portal HTN + hypoalbuminaemia + secondary hyperaldosteronism). Encephalopathy/asterixis (nitrogenous compounds bypassing hepatic metabolism). Coagulopathy/bruising (failure to synthesise clotting factors). SBP — always aspirate new ascites. These features define decompensated cirrhosis.</div></div>
+    <div class="qa-item"><div class="qa-q">What are the autoantibodies in liver disease?</div><div class="qa-a">PBC: AMA-M2 in 98%, elevated IgM. PSC: p-ANCA in some. AIH type 1: anti-smooth muscle (ASMA), ANA. AIH type 2: anti-LKM1. Pattern of autoantibodies classifies AIH type and guides treatment decisions.</div></div>
+    <div class="qa-item"><div class="qa-q">What is the management of ascites in cirrhosis?</div><div class="qa-a">Abstinence (alcohol). Salt restriction (&lt;5g/day). Diuretics: spironolactone first-line, add furosemide if needed. Aim 1kg/day max weight loss. Tense ascites: therapeutic paracentesis + albumin (8g/litre drained). TIPS for refractory ascites. Liver transplant for end-stage disease.</div></div>
+    <div class="qa-item"><div class="qa-q">What is SBP and how is it diagnosed and treated?</div><div class="qa-a">Infection of ascitic fluid without a surgically treatable source — bacterial translocation in cirrhotic ascites. Organisms: E. coli, Klebsiella, Strep pneumoniae. Diagnosed by ascitic tap: neutrophil count &gt;250 cells/mm³. Treat with IV cefotaxime + albumin infusion (reduces HRS risk by 66%). Secondary prevention: norfloxacin.</div></div>
+    <div class="qa-item"><div class="qa-q">How does portal hypertension cause examination findings?</div><div class="qa-a">Portal HTN (clinically significant HVPG &gt;10mmHg): splenomegaly (splenic congestion), ascites (high sinusoidal pressure + hypoalbuminaemia + hyperaldosteronism), caput medusae (porto-systemic collaterals at umbilical vein), oesophageal varices (haemorrhage risk), haemorrhoids.</div></div>
+    <div class="qa-item"><div class="qa-q">What is hepatorenal syndrome?</div><div class="qa-a">Functional renal failure in advanced cirrhosis — renal vasoconstriction from splanchnic vasodilation and reduced effective arterial blood volume. Type 1: rapidly progressive (creatinine doubles to &gt;226 µmol/L in 2 weeks) — median survival weeks untreated. Type 2: slower, associated with refractory ascites. Treatment: IV albumin + terlipressin. Liver transplant is definitive.</div></div>
+  </div></div>
+  <div class="section"><div class="sec-hdr" onclick="tog(this)"><span class="sec-icon">✗</span><span class="sec-title">Common pitfalls</span><span class="sec-arrow">▶</span></div><div class="sec-body">
+    <div class="pitfall">Not counting spider naevi — &gt;5 in SVC distribution is the threshold for significance</div>
+    <div class="pitfall">Missing asterixis — always test for it; its presence defines encephalopathy</div>
+    <div class="pitfall">Not identifying the aetiology — look for alcohol, viral, PBC, haemochromatosis, Wilson's</div>
+    <div class="pitfall">Forgetting the four-point decompensation screen — jaundice, ascites, encephalopathy, coagulopathy</div>
+    <div class="pitfall">Describing a small liver as normal — cirrhotic liver shrinks; percuss liver span and comment</div>
+  </div></div>
+</div>
+
+<!-- CASE 2: HEPATOSPLENOMEGALY -->
+<div class="case-page" id="case-2">
+  <div class="case-hdr"><div class="eyebrow">Case 03 · 8.9%</div><h1>Hepatosplenomegaly</h1>
+  <div class="badge-row"><span class="badge badge-red">8.9%</span><span class="badge badge-blue">Station 4</span><span class="badge badge-amber">Stem: tiredness / abdominal fullness / weight loss</span></div></div>
+  <div class="spot-box"><div class="spot-label">⚡ Spot diagnosis</div><div class="spot-items">
+    <span class="spot-item">Both hepatomegaly AND splenomegaly</span><span class="spot-item">Lymphadenopathy (haematological)</span>
+    <span class="spot-item">CLD stigmata (portal HTN)</span><span class="spot-item">Pallor / purpura (haematological)</span>
+    <span class="spot-item">The cause determines everything</span>
+  </div></div>
+  <div class="section"><div class="sec-hdr" onclick="tog(this)"><span class="sec-icon">🔎</span><span class="sec-title">Full examination — findings</span><span class="sec-arrow open">▶</span></div><div class="sec-body open">
+    <div class="exam-step"><div class="step-n">1</div><div class="step-content"><div class="step-label">End of bed — cause screen</div><div class="step-detail">Pallor + purpura + lymphadenopathy = haematological. CLD stigmata = portal HTN. Cachexia = malignancy. Fever = infectious. Splinter haemorrhages + murmur = endocarditis.</div></div></div>
+    <div class="exam-step"><div class="step-n">2</div><div class="step-content"><div class="step-label">Lymph nodes ★</div><div class="step-detail">Cervical, axillary, inguinal. Rubbery non-tender = lymphoma. Soft tender = reactive/infection. RA hands = Felty's syndrome.</div></div></div>
+    <div class="exam-step"><div class="step-n">3</div><div class="step-content"><div class="step-label">Abdomen — palpation ★</div><div class="step-detail">
+      <strong>Hepatomegaly:</strong> RUQ, moves with respiration, cannot get above, dull. Estimate size. Smooth/craggy/tender/pulsatile.<br>
+      <strong>Splenomegaly:</strong> LUQ, moves infero-medially, medial notch, dull, cannot ballot. Estimate size.
+    </div></div></div>
+    <div class="exam-step"><div class="step-n">4</div><div class="step-content"><div class="step-label">Completions</div><div class="step-detail">CLD decompensation screen. Sternal tenderness (marrow infiltration). Ascites. Urine dip.</div></div></div>
+  </div></div>
+  <div class="section"><div class="sec-hdr" onclick="tog(this)"><span class="sec-icon">💬</span><span class="sec-title">Presentation script</span><span class="sec-arrow open">▶</span></div><div class="sec-body open">
+    <div class="script-card"><div class="sc-hdr diag">1</div><div class="sc-body">"I think this patient has hepatosplenomegaly."</div></div>
+    <div class="script-card"><div class="sc-hdr pos">2</div><div class="sc-body">"The positive findings are: hepatomegaly [X] finger breadths below the costal margin — [smooth/craggy/tender], and splenomegaly with a medial notch. The most likely aetiology is [portal hypertension from CLD / haematological malignancy — lymphadenopathy, pallor, purpura / infectious — clinical context]."</div></div>
+    <div class="script-card"><div class="sc-hdr neg">3</div><div class="sc-body">"Regarding decompensation: [jaundice / ascites / asterixis — present/absent]. There is [no / confirmed] lymphadenopathy — in [cervical/axillary/inguinal] regions. Nutritional status: [well / cachectic]."</div></div>
+  </div></div>
+  <div class="section"><div class="sec-hdr" onclick="tog(this)"><span class="sec-icon">⚖️</span><span class="sec-title">Causes</span><span class="sec-arrow">▶</span></div><div class="sec-body">
+    <div class="diff-row"><span class="diff-dx">Portal HTN (cirrhosis)</span><span class="diff-detail">CLD stigmata, spider naevi, palmar erythema, ascites</span></div>
+    <div class="diff-row"><span class="diff-dx">Haematological (lymphoma, CML, myelofibrosis)</span><span class="diff-detail">Lymphadenopathy, pallor, purpura, massive splenomegaly</span></div>
+    <div class="diff-row"><span class="diff-dx">Infective (EBV, malaria, kala-azar, TB)</span><span class="diff-detail">Fever, travel history, lymphadenopathy</span></div>
+    <div class="diff-row"><span class="diff-dx">Infiltrative (amyloid, sarcoidosis)</span><span class="diff-detail">Firm organomegaly, systemic features</span></div>
+    <div class="diff-row"><span class="diff-dx">Storage (Gaucher's disease)</span><span class="diff-detail">Young, Ashkenazi Jewish, massive splenomegaly, bone pain</span></div>
+  </div></div>
+  <div class="section"><div class="sec-hdr" onclick="tog(this)"><span class="sec-icon">🎓</span><span class="sec-title">Examiner questions</span><span class="sec-arrow">▶</span></div><div class="sec-body">
+    <div class="qa-item"><div class="qa-q">How do you distinguish hepatomegaly from other RUQ masses?</div><div class="qa-a">Hepatomegaly: moves with respiration, cannot get above it, dull to percussion, not ballotable. Distinguish from enlarged gallbladder (smooth, moves with respiration, more anterior — Courvoisier's) and kidney (ballotable, can get above, resonant). Combination with splenomegaly favours hepatic or systemic rather than focal mass.</div></div>
+    <div class="qa-item"><div class="qa-q">What is Felty's syndrome?</div><div class="qa-a">Triad: RA + splenomegaly + neutropenia. Longstanding seropositive RA. Neutropenia causes increased bacterial infection susceptibility. May require splenectomy if recurrent severe infections. Associated with extra-articular RA manifestations — nodules, vasculitis, leg ulcers.</div></div>
+    <div class="qa-item"><div class="qa-q">What haematological conditions cause massive splenomegaly (&gt;8cm)?</div><div class="qa-a">CML (most common UK cause — Philadelphia chromosome t(9;22), BCR-ABL fusion) and myelofibrosis. Tropical: chronic malaria, visceral leishmaniasis (kala-azar). Gaucher's disease (glucocerebrosidase deficiency). Hairy cell leukaemia.</div></div>
+    <div class="qa-item"><div class="qa-q">What investigations would you request?</div><div class="qa-a">FBC + film (blast cells, lymphocytosis, thrombocytopenia). LDH (lymphoma, haemolysis). Liver screen. USS ± CT staging. Blood cultures + viral serology. Thick/thin films (malaria). Bone marrow biopsy. Lymph node biopsy for tissue diagnosis.</div></div>
+    <div class="qa-item"><div class="qa-q">What is the Philadelphia chromosome?</div><div class="qa-a">Translocation t(9;22) creating BCR-ABL — a constitutively active tyrosine kinase. In &gt;95% of CML. Presents with massive splenomegaly, leukocytosis with left shift, basophilia. Treated with imatinib (TKI) — transformed prognosis from 3–5 years to near-normal life expectancy.</div></div>
+  </div></div>
+</div>
+
+<!-- CASE 3: HEPATOMEGALY -->
+<div class="case-page" id="case-3">
+  <div class="case-hdr"><div class="eyebrow">Case 04 · 8.5%</div><h1>Hepatomegaly</h1>
+  <div class="badge-row"><span class="badge badge-red">8.5%</span><span class="badge badge-blue">Station 4</span><span class="badge badge-amber">Stem: RUQ discomfort / jaundice / weight loss</span></div></div>
+  <div class="spot-box"><div class="spot-label">⚡ Spot diagnosis</div><div class="spot-items">
+    <span class="spot-item">RUQ mass moving with respiration</span><span class="spot-item">Cannot get above it</span>
+    <span class="spot-item">Dull to percussion</span><span class="spot-item">Assess character — smooth / craggy / tender / pulsatile</span>
+    <span class="spot-item">Look for the cause</span>
+  </div></div>
+  <div class="section"><div class="sec-hdr" onclick="tog(this)"><span class="sec-icon">🔎</span><span class="sec-title">Full examination — findings</span><span class="sec-arrow open">▶</span></div><div class="sec-body open">
+    <div class="exam-step"><div class="step-n">1</div><div class="step-content"><div class="step-label">End of bed</div><div class="step-detail">Jaundice. Cachexia (malignancy). CLD stigmata. Raised JVP (CCF). Tattoos/needle marks (viral). Slate-grey skin (haemochromatosis).</div></div></div>
+    <div class="exam-step"><div class="step-n">2</div><div class="step-content"><div class="step-label">Hands / arms</div><div class="step-detail">CLD signs. Raised JVP. Injection sites/fingerprick (diabetes). Bruising (coagulopathy).</div></div></div>
+    <div class="exam-step"><div class="step-n">3</div><div class="step-content"><div class="step-label">Palpation — character ★</div><div class="step-detail">
+      <span class="tag t-neutral">Smooth, non-tender:</span> CCF, haematological, fatty liver<br>
+      <span class="tag t-warn">Smooth, tender:</span> acute hepatitis, rapid CCF expansion<br>
+      <span class="tag t-neg">Craggy/nodular:</span> metastases (most common), HCC, cirrhosis<br>
+      <span class="tag t-pos">Pulsatile:</span> tricuspid regurgitation<br>
+      Estimate size in finger breadths. Auscultate for hepatic bruit (HCC).
+    </div></div></div>
+    <div class="exam-step"><div class="step-n">4</div><div class="step-content"><div class="step-label">Completions</div><div class="step-detail">Decompensation screen. Splenomegaly. Lymphadenopathy. Ascites. JVP + oedema (CCF). Sternal tenderness. AFP (HCC).</div></div></div>
+  </div></div>
+  <div class="section"><div class="sec-hdr" onclick="tog(this)"><span class="sec-icon">💬</span><span class="sec-title">Presentation script</span><span class="sec-arrow open">▶</span></div><div class="sec-body open">
+    <div class="script-card"><div class="sc-hdr diag">1</div><div class="sc-body">"I think this patient has hepatomegaly."</div></div>
+    <div class="script-card"><div class="sc-hdr pos">2</div><div class="sc-body">"The liver is palpable [X] finger breadths below the costal margin — it is [smooth and non-tender / craggy and irregular / tender / pulsatile]. The most likely cause is [metastatic malignancy — craggy surface, cachexia / CCF — raised JVP, pulsatile liver, oedema / viral hepatitis — jaundice, tattoos / haemochromatosis — slate-grey pigmentation, injection sites]."</div></div>
+    <div class="script-card"><div class="sc-hdr neg">3</div><div class="sc-body">"Regarding decompensation: [jaundice / ascites / asterixis / coagulopathy — present/absent]. There is [no / confirmed] splenomegaly. Nutritional status: [well / cachectic]."</div></div>
+  </div></div>
+  <div class="section"><div class="sec-hdr" onclick="tog(this)"><span class="sec-icon">⚖️</span><span class="sec-title">Causes — the big three + others</span><span class="sec-arrow">▶</span></div><div class="sec-body">
+    <div class="sub-label">The big three</div>
+    <div class="diff-row"><span class="diff-dx">Cirrhosis (alcoholic)</span><span class="diff-detail">CLD stigmata, Dupuytren's, parotid swelling — smooth, then shrunken late</span></div>
+    <div class="diff-row"><span class="diff-dx">Carcinoma (secondaries)</span><span class="diff-detail">Craggy/nodular, cachexia — look for primary (breast, lung, colon, prostate)</span></div>
+    <div class="diff-row"><span class="diff-dx">CCF</span><span class="diff-detail">Pulsatile (TR), raised JVP, oedema, smooth and tender</span></div>
+    <div class="sub-label">Plus</div>
+    <div class="diff-row"><span class="diff-dx">Infective (HBV, HCV, EBV)</span><span class="diff-detail">Jaundice, fever, tattoos, needle marks</span></div>
+    <div class="diff-row"><span class="diff-dx">Immune (PBC, PSC, AIH)</span><span class="diff-detail">Xanthelasma, pruritus, middle-aged female</span></div>
+    <div class="diff-row"><span class="diff-dx">Infiltrative (amyloid, myeloproliferative)</span><span class="diff-detail">Firm, smooth, lymphadenopathy</span></div>
+    <div class="diff-row"><span class="diff-dx">Haemochromatosis</span><span class="diff-detail">Slate-grey skin, injection sites (diabetes), 2nd/3rd MCP arthropathy</span></div>
+  </div></div>
+  <div class="section"><div class="sec-hdr" onclick="tog(this)"><span class="sec-icon">🎓</span><span class="sec-title">Examiner questions</span><span class="sec-arrow">▶</span></div><div class="sec-body">
+    <div class="qa-item"><div class="qa-q">What is Courvoisier's law?</div><div class="qa-a">A palpable, non-tender gallbladder in a jaundiced patient is unlikely to be due to gallstones — more likely malignant obstruction (pancreatic head carcinoma, cholangiocarcinoma). Gallstones cause chronic cholecystitis with a fibrosed, non-distensible gallbladder. It is a law of likelihood, not certainty.</div></div>
+    <div class="qa-item"><div class="qa-q">What is haemochromatosis?</div><div class="qa-a">Autosomal recessive HFE gene mutation causing excess GI iron absorption. Males affected earlier (females protected by menstrual losses). Bronze diabetes (skin pigmentation + diabetes), hepatomegaly/cirrhosis, pseudogout arthropathy (2nd/3rd MCP characteristic), cardiac failure, hypogonadism. Investigated with ferritin, transferrin saturation, liver biopsy, HFE genotyping. Treated with regular venesection. 200× increased HCC risk if cirrhotic.</div></div>
+    <div class="qa-item"><div class="qa-q">What is the significance of a hepatic bruit?</div><div class="qa-a">Indicates increased arterial flow — highly suspicious for HCC (hypervascular tumour). Also occurs in acute alcoholic hepatitis. Always auscultate over the liver. A bruit significantly raises pre-test probability of HCC and should prompt AFP and urgent imaging.</div></div>
+    <div class="qa-item"><div class="qa-q">How does CCF cause pulsatile hepatomegaly?</div><div class="qa-a">Right heart failure → raised systemic venous pressure → hepatic venous congestion. TR transmits pulsation via IVC and hepatic veins into the liver — systolic pulsation is pathognomonic of TR. Chronic CCF can cause cardiac cirrhosis.</div></div>
+    <div class="qa-item"><div class="qa-q">What are the surveillance and treatment options for HCC?</div><div class="qa-a">Surveillance: 6-monthly USS + AFP in all cirrhotics. Treatment by BCLC staging: surgical resection or transplant (Milan criteria — single ≤5cm or ≤3 nodules ≤3cm) for early disease. Locoregional therapies (TACE, RFA, SIRT) for intermediate. Systemic: sorafenib or atezolizumab/bevacizumab for advanced disease.</div></div>
+  </div></div>
+</div>
+
+<!-- CASE 4: SPLENOMEGALY -->
+<div class="case-page" id="case-4">
+  <div class="case-hdr"><div class="eyebrow">Case 05 · 8.2%</div><h1>Splenomegaly</h1>
+  <div class="badge-row"><span class="badge badge-red">8.2%</span><span class="badge badge-blue">Station 4</span><span class="badge badge-amber">Stem: tiredness / lethargy / abdominal fullness</span></div></div>
+  <div class="spot-box"><div class="spot-label">⚡ Spot diagnosis</div><div class="spot-items">
+    <span class="spot-item">LUQ mass moving infero-medially</span><span class="spot-item">Medial notch</span>
+    <span class="spot-item">Cannot ballot / cannot get above</span><span class="spot-item">Dull to percussion</span>
+    <span class="spot-item">Size = clue to cause</span>
+  </div></div>
+  <div class="section"><div class="sec-hdr" onclick="tog(this)"><span class="sec-icon">🔎</span><span class="sec-title">Full examination — findings</span><span class="sec-arrow open">▶</span></div><div class="sec-body open">
+    <div class="exam-step"><div class="step-n">1</div><div class="step-content"><div class="step-label">End of bed</div><div class="step-detail">Pallor + purpura + lymphadenopathy = haematological. CLD stigmata = portal HTN. Fever = infective. RA hands = Felty's. Splinter haemorrhages + murmur = endocarditis.</div></div></div>
+    <div class="exam-step"><div class="step-n">2</div><div class="step-content"><div class="step-label">General / lymph nodes</div><div class="step-detail">Anaemia. Lymphadenopathy (all regions). Purpura (thrombocytopenia — hypersplenism). Bruising.</div></div></div>
+    <div class="exam-step"><div class="step-n">3</div><div class="step-content"><div class="step-label">Abdomen — palpation ★</div><div class="step-detail">Start in RIF, move toward LUQ. <span class="tag t-pos">LUQ mass moving infero-medially</span>. <span class="tag t-pos">Medial notch</span>. <span class="tag t-pos">Dull to percussion</span>. <span class="tag t-neg">Cannot ballot</span>. <span class="tag t-neg">Cannot get above</span>. Estimate size in cm below costal margin. Check hepatomegaly.</div></div></div>
+    <div class="exam-step"><div class="step-n">4</div><div class="step-content"><div class="step-label">Completions</div><div class="step-detail">Sternal tenderness (marrow infiltration). Hepatomegaly. CLD decompensation screen. Cardiac auscultation (endocarditis). Urine dip.</div></div></div>
+  </div></div>
+  <div class="section"><div class="sec-hdr" onclick="tog(this)"><span class="sec-icon">💬</span><span class="sec-title">Presentation script</span><span class="sec-arrow open">▶</span></div><div class="sec-body open">
+    <div class="script-card"><div class="sc-hdr diag">1</div><div class="sc-body">"I think this patient has splenomegaly."</div></div>
+    <div class="script-card"><div class="sc-hdr pos">2</div><div class="sc-body">"There is a LUQ mass extending [X]cm below the costal margin, moving infero-medially on inspiration with a palpable medial notch, dull to percussion and not ballotable — consistent with splenomegaly. The most likely cause is [a myeloproliferative disorder — massive, no CLD signs / portal hypertension from CLD / infective — clinical context]."</div></div>
+    <div class="script-card"><div class="sc-hdr neg">3</div><div class="sc-body">"There is [no / confirmed] hepatomegaly. There is [no / confirmed] lymphadenopathy. There are [no / confirmed] signs of decompensated liver disease — [jaundice / ascites / asterixis]. Nutritional status: [well / cachectic]."</div></div>
+  </div></div>
+  <div class="section"><div class="sec-hdr" onclick="tog(this)"><span class="sec-icon">📊</span><span class="sec-title">Causes by size</span><span class="sec-arrow">▶</span></div><div class="sec-body">
+    <table class="gen-table">
+      <tr><th>Size</th><th>Causes</th></tr>
+      <tr><td>Massive (&gt;8cm)</td><td>CML, myelofibrosis, malaria (chronic), kala-azar, Gaucher's disease</td></tr>
+      <tr><td>Moderate (4–8cm)</td><td>Myelo/lymphoproliferative, infiltration (Gaucher's, amyloid)</td></tr>
+      <tr><td>Tip (&lt;4cm)</td><td>Portal HTN (cirrhosis), lymphoproliferative, infections (EBV, IE, hepatitis), haemolytic anaemia, Felty's</td></tr>
+    </table>
+  </div></div>
+  <div class="section"><div class="sec-hdr" onclick="tog(this)"><span class="sec-icon">🎓</span><span class="sec-title">Examiner questions</span><span class="sec-arrow">▶</span></div><div class="sec-body">
+    <div class="qa-item"><div class="qa-q">How do you distinguish splenomegaly from a left renal mass?</div><div class="qa-a">Splenomegaly: moves infero-medially, medial notch, dull, cannot ballot, cannot get above. Renal mass: moves vertically, no notch, resonant (bowel overlying), ballotable bimanually, can often get above. The direction of movement and medial notch are the key differentiators.</div></div>
+    <div class="qa-item"><div class="qa-q">What is hypersplenism?</div><div class="qa-a">Increased splenic sequestration — pancytopenia (anaemia, thrombocytopenia, neutropenia) disproportionate to marrow function. Pallor (anaemia), purpura/bruising (thrombocytopenia), infection risk (neutropenia). Moderate portal HTN splenomegaly is sufficient to cause hypersplenism.</div></div>
+    <div class="qa-item"><div class="qa-q">What vaccinations are required before splenectomy?</div><div class="qa-a">Ideally 2 weeks pre-op: pneumococcal (Pneumovax), meningococcal (MenACWY + MenB), Hib, influenza. If emergency — give as soon as possible post-op. Lifelong prophylactic penicillin V + medic alert bracelet. Risk from encapsulated organisms (Strep pneumoniae, H. influenzae, N. meningitidis).</div></div>
+    <div class="qa-item"><div class="qa-q">What is the investigation pathway for new splenomegaly?</div><div class="qa-a">USS abdomen (confirm, measure). FBC + film. LDH (lymphoma, haemolysis). Liver screen. Blood cultures + viral serology. Thick/thin films (malaria). CT staging. Bone marrow biopsy. Lymph node biopsy for tissue diagnosis.</div></div>
+    <div class="qa-item"><div class="qa-q">What is CML and how has its treatment changed?</div><div class="qa-a">Chronic myeloid leukaemia — Philadelphia chromosome t(9;22), BCR-ABL fusion tyrosine kinase. Presents with massive splenomegaly, leukocytosis with left shift, basophilia, thrombocytosis. Previously median survival 3–5 years. Imatinib (first-generation TKI) transformed prognosis to near-normal life expectancy. Resistant/progressive disease: dasatinib, nilotinib, bosutinib, ponatinib. Allogeneic SCT for accelerated/blast phase.</div></div>
+  </div></div>
+</div>
+
+<!-- CASE 5: TRANSPLANTED LIVER -->
+<div class="case-page" id="case-5">
+  <div class="case-hdr"><div class="eyebrow">Case 06 · 7.0%</div><h1>Transplanted Liver</h1>
+  <div class="badge-row"><span class="badge badge-red">7.0%</span><span class="badge badge-blue">Station 4</span><span class="badge badge-amber">Stem: previous surgery / abdominal examination</span></div></div>
+  <div class="spot-box"><div class="spot-label">⚡ Spot diagnosis</div><div class="spot-items">
+    <span class="spot-item">Mercedes-Benz / rooftop scar ★</span><span class="spot-item">Cushingoid</span>
+    <span class="spot-item">Gum hypertrophy (ciclosporin)</span><span class="spot-item">Signs of original disease</span>
+    <span class="spot-item">Skin malignancy (SCC risk)</span>
+  </div></div>
+  <div class="section"><div class="sec-hdr" onclick="tog(this)"><span class="sec-icon">🔎</span><span class="sec-title">Full examination — findings</span><span class="sec-arrow open">▶</span></div><div class="sec-body open">
+    <div class="exam-step"><div class="step-n">1</div><div class="step-content"><div class="step-label">End of bed</div><div class="step-detail">Cushingoid. Jaundice (rejection / biliary complication). CLD stigmata may persist. Original disease signs: slate-grey (haemochromatosis), xanthelasma (PBC), tattoos (viral hepatitis).</div></div></div>
+    <div class="exam-step"><div class="step-n">2</div><div class="step-content"><div class="step-label">Hands / arms</div><div class="step-detail">Residual CLD signs. Steroid effects — purpura, bruising, skin thinning. Tremor (tacrolimus). Bruising (ciclosporin).</div></div></div>
+    <div class="exam-step"><div class="step-n">3</div><div class="step-content"><div class="step-label">Face / mouth</div><div class="step-detail">Jaundice. Cushingoid. <span class="tag t-pos">Gum hypertrophy</span> (ciclosporin). Xanthelasma (PBC). Viral warts. Hirsutism (ciclosporin).</div></div></div>
+    <div class="exam-step"><div class="step-n">4</div><div class="step-content"><div class="step-label">Abdomen — scar ★</div><div class="step-detail"><span class="tag t-pos">Mercedes-Benz scar</span> — bilateral subcostal + midline extension upward. Most common liver transplant scar. Drain sites. Liver biopsy marks. Palpable liver (transplanted organ). No splenomegaly if functioning well.</div></div></div>
+    <div class="exam-step"><div class="step-n">5</div><div class="step-content"><div class="step-label">Skin</div><div class="step-detail">Actinic keratoses, SCC, BCC (×10 risk), viral warts. Sun-damaged skin. Annual dermatology review essential.</div></div></div>
+    <div class="exam-step"><div class="step-n">6</div><div class="step-content"><div class="step-label">Completions</div><div class="step-detail">BP (hypertension from CNI). Decompensation screen (rejection). Lymphadenopathy (PTLD).</div></div></div>
+  </div></div>
+  <div class="section"><div class="sec-hdr" onclick="tog(this)"><span class="sec-icon">💬</span><span class="sec-title">Presentation script</span><span class="sec-arrow open">▶</span></div><div class="sec-body open">
+    <div class="script-card"><div class="sc-hdr diag">1</div><div class="sc-body">"I think this patient has had a liver transplant."</div></div>
+    <div class="script-card"><div class="sc-hdr pos">2</div><div class="sc-body">"The positive signs are: a Mercedes-Benz scar in the upper abdomen consistent with liver transplantation, and Cushingoid features with [gum hypertrophy / tremor] indicating immunosuppressive therapy. The likely indication was [cirrhosis / haemochromatosis — slate-grey pigmentation / PBC — xanthelasma / viral hepatitis — tattoos]."</div></div>
+    <div class="script-card"><div class="sc-hdr neg">3</div><div class="sc-body">"Regarding decompensation: there is [no jaundice / jaundice — raising concern for rejection or biliary complication]. There is [no ascites / ascites]. There is [no asterixis]. Nutritional status: [well / cachectic].<br><br>Regarding complications of treatment: [Cushingoid features / gum hypertrophy from ciclosporin / tremor from tacrolimus]. There is [no evidence of / actinic keratoses suggesting] skin malignancy. BP is [X/Y]."</div></div>
+  </div></div>
+  <div class="section"><div class="sec-hdr" onclick="tog(this)"><span class="sec-icon">🎓</span><span class="sec-title">Examiner questions</span><span class="sec-arrow">▶</span></div><div class="sec-body">
+    <div class="qa-item"><div class="qa-q">What are the top three indications for liver transplantation?</div><div class="qa-a">Cirrhosis (alcoholic, viral, autoimmune, metabolic). Acute hepatic failure (paracetamol overdose, hepatitis A/B, Wilson's disease). HCC within Milan criteria (single ≤5cm or ≤3 nodules ≤3cm, no vascular invasion, no extrahepatic disease). Also: PBC, PSC, metabolic liver disease (Wilson's, haemochromatosis, alpha-1 antitrypsin deficiency).</div></div>
+    <div class="qa-item"><div class="qa-q">What are the Milan criteria for liver transplant in HCC?</div><div class="qa-a">Single tumour ≤5cm, or up to 3 nodules all ≤3cm, with no macrovascular invasion and no extrahepatic spread. Within criteria: ~70% 5-year survival, ~15% recurrence. Downstaging with locoregional therapy (TACE, ablation) may allow patients beyond criteria to qualify.</div></div>
+    <div class="qa-item"><div class="qa-q">What is the graft survival following liver transplantation?</div><div class="qa-a">~80% at 1 year, ~70% at 5 years. Better outcomes: elective (not acute) transplant, lower Child-Pugh score, non-viral aetiology, no HCC recurrence. Alcoholic cirrhosis recipients generally required to demonstrate 6 months abstinence pre-transplant.</div></div>
+    <div class="qa-item"><div class="qa-q">What causes gum hypertrophy?</div><div class="qa-a">Drugs: ciclosporin (most commonly seen in transplant), phenytoin, nifedipine (and other CCBs). Scurvy. Acute myelomonocytic leukaemia (gingival infiltration). Pregnancy. Familial gingival fibromatosis (rare).</div></div>
+    <div class="qa-item"><div class="qa-q">What skin signs occur in transplant patients?</div><div class="qa-a">Malignancy: actinic keratoses (premalignant), SCC (×100), BCC (×10), melanoma (×10). Infection: viral warts (HPV), molluscum, cellulitis. All caused by impaired immunosurveillance. SCC in transplant patients behaves more aggressively — requires prompt treatment.</div></div>
+  </div></div>
+</div>
+
+<!-- CASE 6: ADPKD -->
+<div class="case-page" id="case-6">
+  <div class="case-hdr"><div class="eyebrow">Case 07 · 6.7%</div><h1>ADPKD</h1>
+  <div class="badge-row"><span class="badge badge-red">6.7%</span><span class="badge badge-blue">Station 4</span><span class="badge badge-amber">Stem: hypertension / haematuria / abdominal mass</span></div></div>
+  <div class="spot-box"><div class="spot-label">⚡ Spot diagnosis</div><div class="spot-items">
+    <span class="spot-item">Bilateral ballotable flank masses</span><span class="spot-item">Irregular / cystic texture</span>
+    <span class="spot-item">Hypertension</span><span class="spot-item">AV fistula (end-stage renal failure)</span>
+    <span class="spot-item">Hepatomegaly (hepatic cysts)</span><span class="spot-item">Iliac fossa scar (transplant)</span>
+  </div></div>
+  <div class="section"><div class="sec-hdr" onclick="tog(this)"><span class="sec-icon">🔎</span><span class="sec-title">Full examination — findings</span><span class="sec-arrow open">▶</span></div><div class="sec-body open">
+    <div class="exam-step"><div class="step-n">1</div><div class="step-content"><div class="step-label">End of bed</div><div class="step-detail">Hypertensive facies. AV fistula (on dialysis). Cushingoid (post-transplant). Visible flank fullness bilaterally. Craniotomy scar (ruptured Berry aneurysm).</div></div></div>
+    <div class="exam-step"><div class="step-n">2</div><div class="step-content"><div class="step-label">Arms — RRT status</div><div class="step-detail">Working AV fistula (active HD). Tunnelled line. Iliac fossa scar (renal transplant — ADPKD is top 3 cause). Flank scar (nephrectomy — recurrent bleeding, size, infection).</div></div></div>
+    <div class="exam-step"><div class="step-n">3</div><div class="step-content"><div class="step-label">BP</div><div class="step-detail">Hypertension — common, often the presenting feature. Present in 60% before renal impairment develops.</div></div></div>
+    <div class="exam-step"><div class="step-n">4</div><div class="step-content"><div class="step-label">Abdomen — palpation ★</div><div class="step-detail"><span class="tag t-pos">Bilateral ballotable masses</span> in flanks. Can get above them. Resonant (overlying bowel). Move with respiration. <span class="tag t-pos">Irregular, nodular, cystic texture</span>. Check hepatomegaly (hepatic cysts ~80%). Transplant kidney in iliac fossa.</div></div></div>
+    <div class="exam-step"><div class="step-n">5</div><div class="step-content"><div class="step-label">Completions</div><div class="step-detail">Dip urine (haematuria). BP both arms. Fundoscopy (hypertensive retinopathy). Neurological screen (Berry aneurysm). MVP auscultation (associated in ~25%).</div></div></div>
+  </div></div>
+  <div class="section"><div class="sec-hdr" onclick="tog(this)"><span class="sec-icon">💬</span><span class="sec-title">Presentation script</span><span class="sec-arrow open">▶</span></div><div class="sec-body open">
+    <div class="script-card"><div class="sc-hdr diag">1</div><div class="sc-body">"I think this patient has autosomal dominant polycystic kidney disease."</div></div>
+    <div class="script-card"><div class="sc-hdr pos">2</div><div class="sc-body">"The positive signs are: bilateral enlarged ballotable masses in both flanks with an irregular cystic texture, consistent with polycystic kidneys. There is also hepatomegaly, likely from hepatic cysts. The BP is [X/Y] — hypertension is a common feature."</div></div>
+    <div class="script-card"><div class="sc-hdr neg">3 — Renal safety screen</div><div class="sc-body">"Regarding fluid status: the patient appears [euvolaemic / overloaded — raised JVP, oedema / fluid-deplete].<br><br>Regarding renal replacement therapy: there is [a working AV fistula — active HD / an iliac fossa scar — previous transplant / no active dialysis access — preserved function]. There are [no / scarred non-functioning] previous fistulae.<br><br>Regarding cause: ADPKD is the identified cause — confirmed by bilateral cystic masses and hepatomegaly.<br><br>Regarding complications: [Cushingoid features / gum hypertrophy / tremor — if post-transplant]. There is [no / a] craniotomy scar — [suggesting a previous Berry aneurysm rupture]."</div></div>
+    <div class="script-card"><div class="sc-hdr inc">4</div><div class="sc-body">"To complete I would dip the urine, examine the fundoscopy, and auscultate for mitral valve prolapse."</div></div>
+  </div></div>
+  <div class="section"><div class="sec-hdr" onclick="tog(this)"><span class="sec-icon">🎓</span><span class="sec-title">Examiner questions</span><span class="sec-arrow">▶</span></div><div class="sec-body">
+    <div class="qa-item"><div class="qa-q">What are the genetics of ADPKD?</div><div class="qa-a">Autosomal dominant, prevalence 1:1000. ADPKD1 (chromosome 16, PKD1 — polycystin-1): 85%, earlier and more severe, end-stage by age 40–60. ADPKD2 (chromosome 4, PKD2 — polycystin-2): 15%, later and milder onset. 10% are new mutations — no family history does not exclude. Genetic counselling of all first-degree relatives over 20 years.</div></div>
+    <div class="qa-item"><div class="qa-q">What are the extra-renal manifestations of ADPKD?</div><div class="qa-a">Hepatic cysts (~80% — most common extra-renal feature, rarely cause liver failure). Intracranial Berry aneurysms (~8% — risk of SAH). Mitral valve prolapse (~25%). Colonic diverticulosis. Seminal vesicle cysts. Pancreatic cysts (rare). Aortic root dilatation.</div></div>
+    <div class="qa-item"><div class="qa-q">How does ADPKD present clinically?</div><div class="qa-a">Hypertension (often first sign — 60%). Haematuria (cyst rupture, stones, infection). Abdominal/flank pain (cyst haemorrhage, infection). Urinary tract infection/pyelonephritis. Abdominal mass (incidental or on examination). End-stage renal failure — average age 60 for ADPKD1.</div></div>
+    <div class="qa-item"><div class="qa-q">What is tolvaptan and how does it work?</div><div class="qa-a">Vasopressin V2 receptor antagonist — slows cyst growth by reducing intracellular cAMP (which drives cyst epithelial proliferation and fluid secretion). TEMPO 3:4 trial showed significant slowing of total kidney volume increase and preservation of eGFR. NICE approved for rapidly progressing ADPKD (eGFR 25–60 + evidence of rapid progression). Side effects: aquaretic effects (polyuria, polydipsia) and hepatotoxicity (monitor LFTs).</div></div>
+    <div class="qa-item"><div class="qa-q">When do you screen for intracranial aneurysms in ADPKD?</div><div class="qa-a">MRA head screening for: family history of SAH or intracranial aneurysm, occupational high-risk (pilots, divers, surgeons), previous aneurysm, new severe headaches. Not recommended for all ADPKD patients due to anxiety and procedural risks. Unruptured aneurysms &gt;7–10mm generally treated (clipping or coiling); smaller ones managed conservatively with repeat imaging.</div></div>
+  </div></div>
+  <div class="section"><div class="sec-hdr" onclick="tog(this)"><span class="sec-icon">✗</span><span class="sec-title">Common pitfalls</span><span class="sec-arrow">▶</span></div><div class="sec-body">
+    <div class="pitfall">Not applying the renal four-point safety screen — fluid status, RRT type, cause, complications</div>
+    <div class="pitfall">Missing the hepatomegaly — hepatic cysts are very common and the liver may be palpable</div>
+    <div class="pitfall">Not commenting on a craniotomy scar — represents previous Berry aneurysm, clinically highly relevant</div>
+    <div class="pitfall">Describing the percussion note as dull — overlying bowel makes kidneys resonant, unlike the spleen</div>
+  </div></div>
+</div>
+
+<!-- CASE 7: ASCITES -->
+<div class="case-page" id="case-7">
+  <div class="case-hdr"><div class="eyebrow">Case 08 · 6.3%</div><h1>Ascites</h1>
+  <div class="badge-row"><span class="badge badge-red">6.3%</span><span class="badge badge-blue">Station 4</span><span class="badge badge-amber">Stem: abdominal distension / increasing girth</span></div></div>
+  <div class="spot-box"><div class="spot-label">⚡ Spot diagnosis</div><div class="spot-items">
+    <span class="spot-item">Distended abdomen with flank fullness</span><span class="spot-item">Shifting dullness</span>
+    <span class="spot-item">Fluid thrill (tense ascites)</span><span class="spot-item">Everted umbilicus</span>
+    <span class="spot-item">CLD stigmata (most common cause)</span>
+  </div></div>
+  <div class="section"><div class="sec-hdr" onclick="tog(this)"><span class="sec-icon">🔎</span><span class="sec-title">Full examination — findings</span><span class="sec-arrow open">▶</span></div><div class="sec-body open">
+    <div class="exam-step"><div class="step-n">1</div><div class="step-content"><div class="step-label">End of bed — cause screen</div><div class="step-detail">Distended abdomen. CLD stigmata (cirrhosis — 80%). Raised JVP + oedema (CCF). Cachexia (malignancy). Jaundice. Paracentesis drain site/scars.</div></div></div>
+    <div class="exam-step"><div class="step-n">2</div><div class="step-content"><div class="step-label">Inspection</div><div class="step-detail">Distended abdomen with full flanks. Everted umbilicus (tense). Caput medusae. Dilated flank veins. Drain sites.</div></div></div>
+    <div class="exam-step"><div class="step-n">3</div><div class="step-content"><div class="step-label">Percussion + special tests ★</div><div class="step-detail"><span class="tag t-pos">Shifting dullness</span> — dull in flanks, resonant centrally. Confirm shift when patient rolls. <span class="tag t-pos">Fluid thrill</span> — tense/large ascites: patient presses midline, flick one flank, feel impulse opposite.</div></div></div>
+    <div class="exam-step"><div class="step-n">4</div><div class="step-content"><div class="step-label">Organomegaly + completions</div><div class="step-detail">Hepatomegaly. Splenomegaly (portal HTN). Peripheral oedema. JVP (CCF, hypoalbuminaemia). Pleural effusion (hepatic hydrothorax — check dullness at R base). Lymphadenopathy (malignancy).</div></div></div>
+  </div></div>
+  <div class="section"><div class="sec-hdr" onclick="tog(this)"><span class="sec-icon">💬</span><span class="sec-title">Presentation script</span><span class="sec-arrow open">▶</span></div><div class="sec-body open">
+    <div class="script-card"><div class="sc-hdr diag">1</div><div class="sc-body">"I think this patient has ascites."</div></div>
+    <div class="script-card"><div class="sc-hdr pos">2</div><div class="sc-body">"The positive signs are: a distended abdomen with fullness in both flanks, an everted umbilicus, shifting dullness confirmed on rolling the patient, and [a fluid thrill — consistent with tense ascites]. The most likely aetiology is [cirrhosis — CLD stigmata / malignancy — cachexia, lymphadenopathy / CCF — raised JVP, oedema]."</div></div>
+    <div class="script-card"><div class="sc-hdr neg">3</div><div class="sc-body">"Regarding decompensation: there is [no / confirmed] jaundice. There is [no asterixis / asterixis — encephalopathy]. There is [no / confirmed] bruising / coagulopathy. There are [no / confirmed] signs of portal hypertension — [no / confirmed] caput medusae, [no / confirmed] splenomegaly. Nutritional status: [well / cachectic]."</div></div>
+  </div></div>
+  <div class="section"><div class="sec-hdr" onclick="tog(this)"><span class="sec-icon">🎓</span><span class="sec-title">Examiner questions</span><span class="sec-arrow">▶</span></div><div class="sec-body">
+    <div class="qa-item"><div class="qa-q">What are the causes of ascites?</div><div class="qa-a">Cirrhosis (80%). Malignancy (peritoneal carcinomatosis — ovarian, gastric, colon). CCF. Nephrotic syndrome (hypoalbuminaemia). TB peritonitis. Pancreatitis. Budd-Chiari syndrome. Meigs' syndrome (ovarian fibroma + ascites + pleural effusion).</div></div>
+    <div class="qa-item"><div class="qa-q">What is the SAAG and why is it useful?</div><div class="qa-a">Serum-Ascites Albumin Gradient = serum albumin minus ascitic albumin. SAAG ≥11g/L = portal hypertension (cirrhosis, CCF, Budd-Chiari, portal vein thrombosis) — 97% accuracy. SAAG &lt;11g/L = non-portal HTN (malignancy, TB, nephrotic, pancreatitis). Superior to old protein-based transudate/exudate classification.</div></div>
+    <div class="qa-item"><div class="qa-q">How do you diagnose SBP on ascitic tap?</div><div class="qa-a">Ascitic neutrophil count &gt;250 cells/mm³ — diagnostic regardless of Gram stain (often negative). Other features: low glucose, elevated LDH, positive culture (50–70%). pH &lt;7.35. Treat with IV cefotaxime + albumin (1.5g/kg at diagnosis, 1g/kg at day 3 — prevents HRS by 66%). Secondary prevention: norfloxacin.</div></div>
+    <div class="qa-item"><div class="qa-q">What is hepatorenal syndrome?</div><div class="qa-a">Functional renal failure in advanced cirrhosis — renal vasoconstriction from splanchnic vasodilation and reduced effective arterial blood volume. Type 1: rapidly progressive (creatinine doubles to &gt;226 µmol/L within 2 weeks) — weeks survival untreated. Type 2: slower, associated with refractory ascites. Treatment: IV albumin + terlipressin. Liver transplant definitive.</div></div>
+  </div></div>
+</div>
+
+<!-- CASE 8: IBD -->
+<div class="case-page" id="case-8">
+  <div class="case-hdr"><div class="eyebrow">Case 09 · 5.9%</div><h1>Inflammatory Bowel Disease</h1>
+  <div class="badge-row"><span class="badge badge-red">5.9%</span><span class="badge badge-blue">Station 4</span><span class="badge badge-amber">Stem: abdominal pain / diarrhoea / weight loss / previous surgery</span></div></div>
+  <div class="spot-box"><div class="spot-label">⚡ Spot diagnosis</div><div class="spot-items">
+    <span class="spot-item">Multiple abdominal scars (Crohn's)</span><span class="spot-item">Stoma (ileostomy / colostomy)</span>
+    <span class="spot-item">Cachexia / malnutrition</span><span class="spot-item">Cushingoid (steroids)</span>
+    <span class="spot-item">Extra-intestinal manifestations</span><span class="spot-item">Perianal disease (Crohn's)</span>
+  </div></div>
+  <div class="section"><div class="sec-hdr" onclick="tog(this)"><span class="sec-icon">🔎</span><span class="sec-title">Full examination — findings</span><span class="sec-arrow open">▶</span></div><div class="sec-body open">
+    <div class="exam-step"><div class="step-n">1</div><div class="step-content"><div class="step-label">End of bed</div><div class="step-detail">Cachexia, muscle wasting (malnutrition, malabsorption). Cushingoid (steroids). Stoma bag: ileostomy — liquid green effluent; colostomy — formed stool. Nutritional support line.</div></div></div>
+    <div class="exam-step"><div class="step-n">2</div><div class="step-content"><div class="step-label">Hands / nails</div><div class="step-detail">Clubbing (Crohn's — small bowel). Peripheral arthropathy. Pallor (anaemia). Steroid effects — purpura, bruising.</div></div></div>
+    <div class="exam-step"><div class="step-n">3</div><div class="step-content"><div class="step-label">Face / eyes / mouth</div><div class="step-detail">Uveitis / episcleritis (EIM). Aphthous ulcers. Cushingoid facies. Angular cheilitis (iron/B12 deficiency).</div></div></div>
+    <div class="exam-step"><div class="step-n">4</div><div class="step-content"><div class="step-label">Skin</div><div class="step-detail"><span class="tag t-pos">Erythema nodosum</span> — tender red nodules, anterior shins, parallel disease activity. <span class="tag t-pos">Pyoderma gangrenosum</span> — ulcerating necrotic lesion, may not parallel activity.</div></div></div>
+    <div class="exam-step"><div class="step-n">5</div><div class="step-content"><div class="step-label">Abdomen — inspection ★</div><div class="step-detail">
+      <strong>Crohn's:</strong> <span class="tag t-pos">Multiple scars</span> (resections). RIF scar (right hemicolectomy — terminal ileum). Midline. Stoma (ileostomy). Fistula openings. Perianal disease.<br>
+      <strong>UC:</strong> Fewer scars unless colectomy. Midline + RIF (ileoanal pouch / proctocolectomy). Ileostomy (temporary) or pouch.
+    </div></div></div>
+    <div class="exam-step"><div class="step-n">6</div><div class="step-content"><div class="step-label">Palpation / completions</div><div class="step-detail">RIF mass (Crohn's — inflammatory mass/abscess). Hepatomegaly (PSC — UC association). Joint examination. Spine (ankylosing spondylitis). Perianal exam (fistulae, tags, fissures — Crohn's).</div></div></div>
+  </div></div>
+  <div class="section"><div class="sec-hdr" onclick="tog(this)"><span class="sec-icon">💬</span><span class="sec-title">Presentation script</span><span class="sec-arrow open">▶</span></div><div class="sec-body open">
+    <div class="script-card"><div class="sc-hdr diag">1</div><div class="sc-body">"I think this patient has [Crohn's disease / ulcerative colitis / inflammatory bowel disease]."</div></div>
+    <div class="script-card"><div class="sc-hdr pos">2</div><div class="sc-body">"The positive signs are: [multiple abdominal scars consistent with previous resections / a midline and right iliac fossa scar], [a functioning ileostomy / colostomy], and cachexia suggesting malnutrition. There are extra-intestinal manifestations: [erythema nodosum on the shins / uveitis / aphthous ulcers]."<div class="sc-note">Crohn's vs UC: Multiple scars + perianal disease + clubbing + RIF mass = Crohn's. Colectomy + pouch + less cachexia = more likely UC.</div></div></div>
+    <div class="script-card"><div class="sc-hdr neg">3</div><div class="sc-body">"Regarding nutritional status: the patient appears [well-nourished / cachectic with significant muscle wasting]. There is [no / confirmed] anaemia. There are [no Cushingoid features / Cushingoid features from steroid therapy]. There is [no / confirmed] hepatomegaly — [no hepatomegaly suggesting PSC / hepatomegaly present, raising the possibility of PSC]."</div></div>
+  </div></div>
+  <div class="section"><div class="sec-hdr" onclick="tog(this)"><span class="sec-icon">📊</span><span class="sec-title">Crohn's vs UC</span><span class="sec-arrow">▶</span></div><div class="sec-body">
+    <table class="gen-table">
+      <tr><th>Feature</th><th>Crohn's disease</th><th>Ulcerative colitis</th></tr>
+      <tr><td>Distribution</td><td>Any GI tract — mouth to anus, skip lesions</td><td>Colon only — continuous from rectum</td></tr>
+      <tr><td>Depth</td><td>Transmural (all layers)</td><td>Mucosal and submucosal only</td></tr>
+      <tr><td>Perianal</td><td>Common — fistulae, skin tags, fissures</td><td>Rare</td></tr>
+      <tr><td>Malignancy risk</td><td>Small bowel SCC (rare)</td><td>CRC (significant — 10yr surveillance)</td></tr>
+      <tr><td>Surgery</td><td>Not curative — recurrence inevitable</td><td>Colectomy is curative</td></tr>
+      <tr><td>PSC association</td><td>Rare</td><td>Strong (70% of PSC patients have UC)</td></tr>
+      <tr><td>Smoking</td><td>Worsens disease</td><td>Paradoxically protective</td></tr>
+    </table>
+  </div></div>
+  <div class="section"><div class="sec-hdr" onclick="tog(this)"><span class="sec-icon">🎓</span><span class="sec-title">Examiner questions</span><span class="sec-arrow">▶</span></div><div class="sec-body">
+    <div class="qa-item"><div class="qa-q">What are the extra-intestinal manifestations of IBD?</div><div class="qa-a">Related to disease activity: erythema nodosum, peripheral arthropathy (large joint, non-erosive), uveitis/episcleritis. Independent: ankylosing spondylitis, sacroiliitis, pyoderma gangrenosum, PSC (particularly UC). Other: aphthous ulcers, clubbing, gallstones (Crohn's — ileal disease, reduced bile salt reabsorption), renal stones (oxalate — steatorrhoea).</div></div>
+    <div class="qa-item"><div class="qa-q">What is the association between UC and PSC?</div><div class="qa-a">~70% of PSC patients have UC. Only 5% of UC patients develop PSC, but the combination significantly increases colorectal cancer risk (annual colonoscopy from PSC diagnosis). PSC: independent risk factor for cholangiocarcinoma. Treatment of UC does not alter PSC course — liver transplant is the only treatment for PSC.</div></div>
+    <div class="qa-item"><div class="qa-q">What is the medical management of Crohn's?</div><div class="qa-a">Induction: corticosteroids (prednisolone, budesonide for ileocolonic). Maintenance: azathioprine/mercaptopurine or methotrexate. Biologics: anti-TNF (infliximab, adalimumab) for moderate-severe/steroid-refractory; vedolizumab (anti-integrin); ustekinumab (anti-IL12/23). Nutritional therapy: elemental diet — especially in children. Smoking cessation: single most important lifestyle intervention.</div></div>
+    <div class="qa-item"><div class="qa-q">What are the complications of Crohn's?</div><div class="qa-a">Strictures (obstruction). Fistulae (enteroenteric, enterovesical, enterocutaneous, perianal). Abscess. Malabsorption (terminal ileal disease — B12, bile salts, fat-soluble vitamins). Short bowel syndrome (post-resection). Small bowel SCC (rare). Osteoporosis (steroids + malabsorption). Amyloidosis (longstanding, rare).</div></div>
+    <div class="qa-item"><div class="qa-q">How does IBD relate to bronchiectasis?</div><div class="qa-a">IBD (particularly UC) is a recognised cause of bronchiectasis — immune-mediated cross-reactivity between gut and airway epithelium. Listed in the immune-overactivity category. Patients with IBD may develop lower respiratory tract disease even in clinical remission. An important link between the abdominal and respiratory PACES cases.</div></div>
+  </div></div>
+</div>
+
+<!-- CASE 9: ABDOMINAL MASS -->
+<div class="case-page" id="case-9">
+  <div class="case-hdr"><div class="eyebrow">Case 10 · 5.5%</div><h1>Abdominal Mass</h1>
+  <div class="badge-row"><span class="badge badge-red">5.5%</span><span class="badge badge-blue">Station 4</span><span class="badge badge-amber">Stem: abdominal fullness / incidental finding / weight loss</span></div></div>
+  <div class="spot-box"><div class="spot-label">⚡ Approach first — diagnose second</div><div class="spot-items">
+    <span class="spot-item">Characterise fully before naming it</span><span class="spot-item">Region: which quadrant?</span>
+    <span class="spot-item">Moves with respiration?</span><span class="spot-item">Can you get above / below it?</span>
+    <span class="spot-item">Ballotable? Pulsatile? Tender? Consistency?</span>
+  </div></div>
+  <div class="section"><div class="sec-hdr" onclick="tog(this)"><span class="sec-icon">🔎</span><span class="sec-title">Full examination — systematic approach</span><span class="sec-arrow open">▶</span></div><div class="sec-body open">
+    <div class="exam-step"><div class="step-n">1</div><div class="step-content"><div class="step-label">End of bed</div><div class="step-detail">Cachexia (malignancy). Jaundice (hepatobiliary). CLD stigmata. AV fistula (renal). Cushingoid (lymphoma on steroids). Visible pulsation (AAA). Visible mass.</div></div></div>
+    <div class="exam-step"><div class="step-n">2</div><div class="step-content"><div class="step-label">Inspection</div><div class="step-detail">Visible mass — which quadrant? Asymmetry. Pulsation (AAA — expansile epigastric). Scars. Distension (ascites vs mass).</div></div></div>
+    <div class="exam-step"><div class="step-n">3</div><div class="step-content"><div class="step-label">Palpation — characterise ★</div><div class="step-detail">
+      <strong>Position:</strong> quadrant/region<br>
+      <strong>Size:</strong> estimate in cm<br>
+      <strong>Shape:</strong> smooth / irregular / cystic / solid<br>
+      <strong>Consistency:</strong> soft / firm / hard<br>
+      <strong>Tenderness:</strong> present / absent<br>
+      <strong>Mobility:</strong> moves with respiration? Freely mobile? Fixed?<br>
+      <strong>Get above / below?</strong><br>
+      <strong>Ballotable?</strong> (renal)<br>
+      <strong>Expansile pulsation?</strong> (AAA — hands pushed apart laterally)
+    </div></div></div>
+    <div class="exam-step"><div class="step-n">4</div><div class="step-content"><div class="step-label">Percussion / auscultation</div><div class="step-detail">Dull (solid organ/tumour). Resonant (kidney — bowel overlying). Bruit (renal artery stenosis, HCC, AAA). Bowel sounds.</div></div></div>
+    <div class="exam-step"><div class="step-n">5</div><div class="step-content"><div class="step-label">Completions</div><div class="step-detail">Lymphadenopathy (lymphoma, metastases). Decompensation screen. Renal access. Testicular exam in males (retroperitoneal lymph nodes — testicular primary). Rectal/vaginal exam (offered verbally). Breast (ovarian metastases from breast primary).</div></div></div>
+  </div></div>
+  <div class="section"><div class="sec-hdr" onclick="tog(this)"><span class="sec-icon">💬</span><span class="sec-title">Presentation script</span><span class="sec-arrow open">▶</span></div><div class="sec-body open">
+    <div class="script-card"><div class="sc-hdr diag">1</div><div class="sc-body">"I think this patient has [a hepatic / splenic / renal / retroperitoneal / aortic] mass."<div class="sc-note">Characterise fully before committing to a diagnosis. If uncertain, describe the mass and give differentials.</div></div></div>
+    <div class="script-card"><div class="sc-hdr pos">2</div><div class="sc-body">"There is a [X]cm mass in the [region], which is [smooth/irregular], [soft/firm/hard], [tender/non-tender], [moves/does not move] with respiration, dull/resonant to percussion, and [is/is not] ballotable. The most likely diagnosis is [X] based on these characteristics."</div></div>
+    <div class="script-card"><div class="sc-hdr neg">3</div><div class="sc-body">"There is [no / confirmed] lymphadenopathy. There are [no / confirmed] signs of decompensated liver disease. Nutritional status: [well / cachectic — raising concern for malignancy]."</div></div>
+  </div></div>
+  <div class="section"><div class="sec-hdr" onclick="tog(this)"><span class="sec-icon">📊</span><span class="sec-title">Mass by region</span><span class="sec-arrow">▶</span></div><div class="sec-body">
+    <table class="gen-table">
+      <tr><th>Region</th><th>Differentials</th><th>Key features</th></tr>
+      <tr><td>RUQ</td><td>Hepatomegaly, gallbladder, hepatic cyst</td><td>Moves with respiration, dull, cannot get above</td></tr>
+      <tr><td>Epigastric</td><td>AAA, gastric cancer, pancreatic pseudocyst, lymphoma</td><td>Expansile pulsation = AAA</td></tr>
+      <tr><td>LUQ</td><td>Splenomegaly, ADPKD, splenic cyst</td><td>Medial notch, moves infero-medially, cannot ballot</td></tr>
+      <tr><td>RIF</td><td>Crohn's mass, appendix, caecal carcinoma, transplant kidney, ovarian</td><td>Tender (Crohn's), hard/irregular (carcinoma)</td></tr>
+      <tr><td>LIF</td><td>Colonic carcinoma, diverticular mass, ovarian</td><td>Hard, irregular, non-tender (carcinoma)</td></tr>
+      <tr><td>Flanks (bilateral)</td><td>ADPKD, horseshoe kidney</td><td>Ballotable, resonant, can get above</td></tr>
+      <tr><td>Central</td><td>Bladder, uterine, lymphoma, horseshoe kidney</td><td>Dull, does not move with respiration</td></tr>
+    </table>
+  </div></div>
+  <div class="section"><div class="sec-hdr" onclick="tog(this)"><span class="sec-icon">🎓</span><span class="sec-title">Examiner questions</span><span class="sec-arrow">▶</span></div><div class="sec-body">
+    <div class="qa-item"><div class="qa-q">How do you distinguish expansile from transmitted pulsation?</div><div class="qa-a">Place both hands on either side of the mass. Expansile: hands pushed apart laterally with each pulsation — indicates aneurysm (AAA). Transmitted: both hands move together — mass overlying a normal aorta (e.g. lymph node). A tender or rapidly expanding AAA is a vascular emergency.</div></div>
+    <div class="qa-item"><div class="qa-q">How would you investigate a new abdominal mass?</div><div class="qa-a">Bloods: FBC, LFTs, U&amp;E, LDH, AFP (HCC/testicular), CA125 (ovarian), CEA (colonic), beta-hCG (testicular/gestational). USS abdomen (first-line). CT abdomen/pelvis with contrast (characterise, staging). Tissue diagnosis: CT-guided biopsy, colonoscopy, endoscopy, laparoscopy. MDT discussion before biopsy if resectable — avoid seeding the tract.</div></div>
+    <div class="qa-item"><div class="qa-q">What is the significance of a non-tender epigastric expansile mass?</div><div class="qa-a">AAA — defined as aortic diameter &gt;3cm. Clinically significant if &gt;5.5cm in men (&gt;5.0cm in women) or rapidly expanding (&gt;1cm/year). Elective repair: EVAR or open surgery. Urgent repair if tender (imminent rupture) or ruptured (haemodynamic instability — mortality 80%). UK national AAA screening programme: one-time USS to men aged 65.</div></div>
+    <div class="qa-item"><div class="qa-q">What tumour markers are useful?</div><div class="qa-a">AFP: HCC (&gt;400ng/mL diagnostic in context), testicular non-seminoma. CEA: colorectal cancer (monitoring). CA125: ovarian cancer (monitoring — also elevated in endometriosis, peritonitis, CCF). PSA: prostate. Beta-hCG: gestational trophoblastic disease, testicular teratoma. LDH: lymphoma, haemolysis (non-specific but prognostic).</div></div>
+    <div class="qa-item"><div class="qa-q">What features suggest malignancy?</div><div class="qa-a">Hard/firm consistency. Irregular, craggy surface. Non-tender (malignant masses often painless until late). Fixed to surrounding structures. Cachexia and weight loss. Lymphadenopathy. Signs of metastatic disease (hepatomegaly, ascites, pleural effusion). Raised tumour markers. Contrast with inflammatory masses (Crohn's, abscess) — tender, softer.</div></div>
+  </div></div>
+  <div class="section"><div class="sec-hdr" onclick="tog(this)"><span class="sec-icon">✗</span><span class="sec-title">Common pitfalls</span><span class="sec-arrow">▶</span></div><div class="sec-body">
+    <div class="pitfall">Naming the diagnosis before characterising the mass — always describe fully first</div>
+    <div class="pitfall">Confusing expansile from transmitted pulsation — this distinction diagnoses AAA</div>
+    <div class="pitfall">Not offering testicular examination in males — retroperitoneal masses may be metastatic from testicular primary</div>
+    <div class="pitfall">Not looking for lymphadenopathy — changes differential toward haematological or metastatic disease</div>
+    <div class="pitfall">Missing cachexia — always comment on nutritional status; shifts differential toward malignancy</div>
+  </div></div>
+</div>
+
+</main>
+<script>
+function show(n){document.querySelectorAll('.case-page').forEach((p,i)=>p.classList.toggle('active',i===n));document.querySelectorAll('.case-btn').forEach((b,i)=>b.classList.toggle('active',i===n));document.getElementById('mainContent').scrollTop=0;}
+function tog(h){const b=h.nextElementSibling,a=h.querySelector('.sec-arrow'),o=b.classList.contains('open');b.classList.toggle('open',!o);a.classList.toggle('open',!o);}
+</script>
+</body>
+</html>
